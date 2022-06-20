@@ -24,4 +24,12 @@ admin.site.register(Social)
 
 admin.site.register(Role)
 
+admin.site.register(Salary_employee)
+
+admin.site.register(Rate_entry)
+
 admin.site.register(Employee_Statistics)
+
+admin.site.register(Project_Statistics)
+
+admin.site.register(Advance_Statistics)

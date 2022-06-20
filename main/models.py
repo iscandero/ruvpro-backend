@@ -57,8 +57,8 @@ class Project(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     name = models.CharField(verbose_name="Название проекта", unique=True, max_length=255)
-    proposed_income = models.FloatField(verbose_name="Предполагаемый заработок в проекте", unique=False, null=True,
-                                        blank=True)
+    budget = models.FloatField(verbose_name="Бюджет проекта", unique=False, null=True,
+                               blank=True)
     is_archived = models.BooleanField(verbose_name="Флаг архивности проекта", unique=False, null=False, blank=False)
     owner_id = models.ForeignKey(to=User, verbose_name="ID Создателя", null=False, blank=False,
                                  on_delete=models.PROTECT)
@@ -109,10 +109,6 @@ class Project_employee(models.Model):
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     user_id = models.ForeignKey(to=User, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     role_id = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
-    rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=False, blank=False)
-    # Считать по ёбнутой формуле нахуй
-    salary = models.FloatField(verbose_name="З/П рабочего", unique=False, null=False, blank=False)
-    # work_time = models.FloatField(verbose_name="Рабочее время", unique=False, null=False, blank=False)
     project_id = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -120,6 +116,19 @@ class Project_employee(models.Model):
 
 
 post_save.connect(Project.calculate_average_rate, sender=Project_employee)
+
+
+class Rate_entry(models.Model):
+    class Meta:
+        verbose_name = "Ставка работника"
+        verbose_name_plural = "Ставки работников"
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=False, blank=False)
+    employee_id = models.ForeignKey(to=Project_employee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Ставка {self.id} работника {self.employee_id.id}"
 
 
 class Time_entry(models.Model):
@@ -137,7 +146,7 @@ class Time_entry(models.Model):
     work_time = models.FloatField(verbose_name="Выданное рабочее время", unique=False, null=False, blank=False)
 
     def __str__(self):
-        return f"Рабочее время {self.id} работнику {self.employee_id.id}"
+        return f"Рабочее время {self.id} работника {self.employee_id.id}"
 
 
 post_save.connect(Project.calculate_general_work_time, sender=Time_entry)
@@ -166,6 +175,110 @@ class Transactions(models.Model):
         return f"Начисление {self.id} работнику {self.employee_id.id}"
 
 
+class Salary_employee(models.Model):
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    employee_id = models.ForeignKey(to=Project_employee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+    salary = models.FloatField(verbose_name="З/П рабочего", unique=False, null=True, blank=True, default=0)
+
+    @staticmethod
+    def calculate_salary(sender, instance, **kwargs):
+        # роль - объект модели Role
+        role = instance.employee_id.role_id
+
+        hours_emp = Time_entry.objects.filter(employee_id=instance.employee_id).aggregate(sum_hours=Sum('work_time'))
+
+        # сумма рабочих часов этого работника числом
+        hours_employee = hours_emp['sum_hours']
+
+        # проект - объект модели Project
+        project = instance.employee_id.project_id
+
+        hours_all_emp = Time_entry.objects.filter(project_id=project).aggregate(sum_all_hours=Sum('work_time'))
+
+        # сумма рабочих часов всех работников на проекте числом
+        hours_employees = hours_all_emp['sum_all_hours']
+
+        master_role = Role.objects.get(name='master')
+        masters = Project_employee.objects.filter(role=master_role)
+
+        hours_all_masters = Time_entry.objects.filter(project_id=project, employee_id__in=
+        masters).aggregate(sum_all_hours=Sum('work_time'))
+
+        # сумма рабочих часов всех мастеров на проекте числом
+        hours_masters = hours_all_masters['sum_all_hours']
+
+        mentor_role = Role.objects.get(name='mentor')
+        mentors = Project_employee.objects.filter(role=mentor_role)
+
+        hours_all_mentors = Time_entry.objects.filter(project_id=project, employee_id__in=mentors).aggregate(
+            sum_all_hours=Sum('work_time'))
+
+        # сумма рабочих часов всех менторов на проекте числом
+        hours_mentors = hours_all_mentors['sum_all_hours']
+
+        assist_role = Role.objects.get(name='assist')
+        assists = Project_employee.objects.filter(role=assist_role)
+
+        hours_all_assists = Time_entry.objects.filter(project_id=project, employee_id__in=assists).aggregate(
+            sum_all_hours=Sum('work_time'))
+
+        # сумма рабочих часов всех ассистентов на проекте числом
+        hours_assists = hours_all_assists['sum_all_hours']
+
+        intern_role = Role.objects.get(name='intern')
+        interns = Project_employee.objects.filter(role=intern_role)
+
+        hours_all_interns = Time_entry.objects.filter(project_id=project, employee_id__in=interns).aggregate(
+            sum_all_hours=Sum('work_time'))
+
+        # сумма рабочих часов всех интернов на проекте числом
+        hours_interns = hours_all_interns['sum_all_hours']
+
+        pupil_role = Role.objects.get(name='pupil')
+        pupils = Project_employee.objects.filter(role=pupil_role)
+
+        hours_all_pupils = Time_entry.objects.filter(project_id=project, employee_id__in=pupils).aggregate(
+            sum_all_hours=Sum('work_time'))
+
+        # сумма рабочих часов всех учеников на проекте числом
+        hours_pupils = hours_all_pupils['sum_all_hours']
+
+        # количество работников с данной ролью на проекте числом
+        count_employees_with_this_role = Project_employee.objects.filter(project_id=project, role_id=role).count()
+
+        interns_income = Transactions.objects.filter(employee_id__in=interns).aggregate(
+            sum_interns_amounts=Sum('amount'))
+
+        # сумма заработков всех интернов на проекте числом
+        sum_interns_income = interns_income['sum_interns_amounts']
+
+        sum_addit_income = Transactions.objects.filter(employee_id=instance.employee_id,
+                                                       type_accrual__in=['REPAIR', 'AMORT', 'TIME']).aggregate(
+            additional_income=Sum('amount'))
+
+        # сумма доп. заработка работника числом
+        sum_additional_income = sum_addit_income['additional_income']
+
+        # бюджет проекта числом
+        budget_project = project.budget
+
+        # Промежуточная стоимость часа работы
+        cost_hour = (budget_project - sum_additional_income) / hours_employees
+
+        # у ученика зп не считается, она выдаётся статично
+        if role.name != 'intern':
+            first_part = (
+                                 cost_hour + 0.2 * cost_hour * hours_assists + cost_hour * hours_interns - sum_interns_income) / (
+                                 hours_masters + hours_mentors)
+
+            second_part = (cost_hour * 0.4 * hours_pupils) / (hours_masters + 1.1 * hours_mentors)
+
+            instance.salary = hours_employee * (first_part + second_part)
+
+
+post_save.connect(Salary_employee.calculate_salary, sender=Salary_employee)
+
+
 class Employee_Statistics(models.Model):
     class Meta:
         verbose_name = "Статистика работника"
@@ -178,42 +291,29 @@ class Employee_Statistics(models.Model):
     end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
                                 blank=False)
 
+    # доход
     income = models.FloatField(verbose_name="Доход", null=False, blank=False, unique=False, default=0)
 
     # work_time - суммарное время, которое выдавали в Time_entry этому пассажиру
-
     work_time = models.FloatField(verbose_name="Рабочее время", unique=False, null=False, blank=False, default=0)
 
-    # Считать rate - УТОЧНИТЬ
+    # Последняя ставка
+    rate = models.FloatField(verbose_name="Текущая ставка рабочего", unique=False, null=False, blank=False, default=0)
 
     @staticmethod
-    def calculate_statictics_data(sender, instance, **kwargs):
-        salary_transactions = Transactions.objects.filter(employee_id=instance.employee_id,
-                                                          transaction_date__gte=instance.start_date,
-                                                          transaction_date__lte=instance.end_date,
-                                                          type_accrual='SAL').aggregate(
-            amount_sum=Sum('amount'))
+    def calculate_statistics_data(sender, instance, **kwargs):
 
-        advance_transactions = Transactions.objects.filter(employee_id=instance.employee_id,
-                                                           transaction_date__gte=instance.start_date,
-                                                           transaction_date__lte=instance.end_date,
-                                                           type_accrual='ADV').aggregate(
-            amount_sum=Sum('amount'))
+        sum_amount_no_advance_transactions = Transactions.objects.filter(employee_id=instance.employee_id,
+                                                                         transaction_date__gte=instance.start_date,
+                                                                         transaction_date__lte=instance.end_date).exclude(
+            type_accrual='ADV').aggregate(sum_no_adv=Sum('amount'))
 
-        no_salary_advance_transactions = Transactions.objects.filter(employee_id=instance.employee_id,
-                                                                     transaction_date__gte=instance.start_date,
-                                                                     transaction_date__lte=instance.end_date).exclude(
-            type_accrual='SAL').exclude(type_accrual='ADV').aggregate(amount_sum=Sum('amount'))
+        amount = sum_amount_no_advance_transactions['sum_no_adv']
 
-        if salary_transactions is None:
-            salary_transactions = 0
-        if advance_transactions is None:
-            advance_transactions = 0
-        if no_salary_advance_transactions is None:
-            no_salary_advance_transactions = 0
+        if amount is None:
+            amount = 0
 
-        instance.income = salary_transactions['amount_sum'] - advance_transactions['amount_sum'] + \
-                          no_salary_advance_transactions['amount_sum']
+        instance.income = amount
 
         sum_work_time = Time_entry.objects.filter(employee_id=instance.employee_id, date__gte=instance.start_date,
                                                   date__lte=instance.end_date).aggregate(amount_sum=Sum('work_time'))
@@ -222,11 +322,92 @@ class Employee_Statistics(models.Model):
 
         instance.work_time = sum_work_time
 
+        last_rate = Rate_entry.objects.filter(employee_id=instance.employee_id).last().rate
+
+        if last_rate is None:
+            last_rate = 0
+
+        instance.rate = last_rate
+
     def __str__(self):
         return f"Статистика {self.id} работника {self.employee_id.id}"
 
 
-post_save.connect(Employee_Statistics.calculate_statictics_data, sender=Transactions)
+post_save.connect(Employee_Statistics.calculate_statistics_data, sender=Employee_Statistics)
+
+
+class Project_Statistics(models.Model):
+    class Meta:
+        verbose_name = "Статистика проекта"
+        verbose_name_plural = "Статистики проектов"
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    project_id = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE, default=0)
+    start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
+                                  blank=False)
+    end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
+                                blank=False)
+    income = models.FloatField(verbose_name="Доход всех работников", null=False, blank=False, unique=False, default=0)
+
+    @staticmethod
+    def calculate_statistics_data(sender, instance, **kwargs):
+        # Список всех id employees в проекте
+        all_emp_in_this_prj = Project_employee.objects.filter(project_id=instance.project_id)
+
+        sum_amount_no_adv = Transactions.objects.filter(employee_id__in=all_emp_in_this_prj,
+                                                        date__gte=instance.start_date,
+                                                        date__lte=instance.end_date).exclude(
+            type_accrual='ADV').aggregate(sum_inc=Sum('amount'))
+
+        amount = sum_amount_no_adv['sum_inc']
+
+        if amount is None:
+            amount = 0
+        instance.income = amount
+
+    def __str__(self):
+        return f"Статистика {self.id} проекта {self.project_id.id}"
+
+
+post_save.connect(Project_Statistics.calculate_statistics_data, sender=Project_Statistics)
+
+
+class Advance_Statistics(models.Model):
+    class Meta:
+        verbose_name = "Статистика работника"
+        verbose_name_plural = "Статистики работников"
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    employee_id = models.ForeignKey(to=Project_employee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+    start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
+                                  blank=False)
+    end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
+                                blank=False)
+
+    # доход авансов
+    advance = models.FloatField(verbose_name="Сумма авансов работника", null=False, blank=False, unique=False,
+                                default=0)
+
+    @staticmethod
+    def calculate_statistics_data(sender, instance, **kwargs):
+        sum_amount_advance_transactions = Transactions.objects.filter(employee_id=instance.employee_id,
+                                                                      transaction_date__gte=instance.start_date,
+                                                                      transaction_date__lte=instance.end_date,
+                                                                      type_accrual='ADV').aggregate(
+            sum_adv=Sum('amount'))
+
+        amount = sum_amount_advance_transactions['sum_adv']
+
+        if amount is None:
+            amount = 0
+
+        instance.advance = amount
+
+    def __str__(self):
+        return f"Статистика авансов {self.id} работника {self.employee_id.id}"
+
+
+post_save.connect(Advance_Statistics.calculate_statistics_data, sender=Advance_Statistics)
 
 
 class Team(models.Model):
