@@ -1,1 +1,27 @@
 # Register your models here.
+
+from django.contrib import admin
+
+from .models import *
+
+admin.site.register(Project)
+
+admin.site.register(Project_employee)
+
+admin.site.register(SocialNetwork)
+
+admin.site.register(Team)
+
+admin.site.register(User)
+
+admin.site.register(UsersTeam)
+
+admin.site.register(Transactions)
+
+admin.site.register(Time_entry)
+
+admin.site.register(Social)
+
+admin.site.register(Role)
+
+admin.site.register(Employee_Statistics)
