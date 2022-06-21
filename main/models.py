@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, Avg
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class User(models.Model):
@@ -99,12 +100,12 @@ class Role(models.Model):
     amount = models.FloatField(verbose_name="Размер платы", unique=False, null=True, blank=True)
     author_id = models.ForeignKey(to=User, verbose_name="ID Создателя роли", on_delete=models.CASCADE)
 
-    @staticmethod
-    def create_base_roles(sender, instance, **kwargs):
-        admin = sender.objects.get(user_id=instance.author_id.id)
-        if admin.authority == 1:
-
-            if Role.objects.filter(name='Мастер', author_id=admin) is None:
+    # При создании платника создать ему прототипы базовых ролей, которые уже созданы
+    @receiver(post_save, sender=User)
+    def create_base_roles(sender, instance, created, update_fields, **kwargs):
+        admin = instance
+        if (created or update_fields == {'authority'}) and admin.authority == 1:
+            if not Role.objects.filter(name='Мастер', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Мастер').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -121,7 +122,7 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-            if Role.objects.filter(name='Ментор', author_id=admin) is None:
+            if not Role.objects.filter(name='Ментор', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Ментор').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -138,7 +139,7 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-            if Role.objects.filter(name='Подсобный', author_id=admin) is None:
+            if not Role.objects.filter(name='Подсобный', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Подсобный').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -155,7 +156,7 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-            if Role.objects.filter(name='Ученик', author_id=admin) is None:
+            if not Role.objects.filter(name='Ученик', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Ученик').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -172,7 +173,7 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-            if Role.objects.filter(name='Журнал учета', author_id=admin) is None:
+            if not Role.objects.filter(name='Журнал учета', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Журнал учета').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -189,7 +190,7 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-            if Role.objects.filter(name='Аммортизация инструмента', author_id=admin) is None:
+            if not Role.objects.filter(name='Аммортизация инструмента', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Аммортизация инструмента').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -206,7 +207,7 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-            if Role.objects.filter(name='Испытательный срок', author_id=admin) is None:
+            if not Role.objects.filter(name='Испытательный срок', author_id=admin):
                 copy_base_instance = Role.objects.filter(name='Испытательный срок').first()
                 copy_base_name = copy_base_instance.name
                 copy_base_description = copy_base_instance.description
@@ -223,13 +224,26 @@ class Role(models.Model):
                 }
                 Role.objects.create(**data_to_create)
 
-    # При создании платника создать ему прототипы базовых ролей, которые уже созданы
-
+        if update_fields == {'authority'} and admin.authority == 0:
+            if Role.objects.filter(name='Мастер', author_id=admin):
+                Role.objects.filter(name='Мастер', author_id=admin).delete()
+            if Role.objects.filter(name='Ментор', author_id=admin):
+                Role.objects.filter(name='Ментор', author_id=admin).delete()
+            if Role.objects.filter(name='Подсобный', author_id=admin):
+                Role.objects.filter(name='Подсобный', author_id=admin).delete()
+            if Role.objects.filter(name='Ученик', author_id=admin):
+                Role.objects.filter(name='Ученик', author_id=admin).delete()
+            if Role.objects.filter(name='Журнал учета', author_id=admin):
+                Role.objects.filter(name='Журнал учета', author_id=admin).delete()
+            if Role.objects.filter(name='Аммортизация инструмента', author_id=admin):
+                Role.objects.filter(name='Аммортизация инструмента', author_id=admin).delete()
+            if Role.objects.filter(name='Испытательный срок', author_id=admin):
+                Role.objects.filter(name='Испытательный срок', author_id=admin).delete()
     def __str__(self):
         return f"Роль {self.id}: {self.name}"
 
 
-post_save.connect(Role.create_base_roles, sender=User)
+# post_init.connect(Role.create_base_roles, sender=User)
 
 
 class Project_employee(models.Model):
@@ -245,7 +259,7 @@ class Project_employee(models.Model):
         return f"Работник {self.id}: User_id {self.user_id.id}"
 
 
-post_save.connect(Project.calculate_average_rate, sender=Project_employee)
+# post_save.connect(Project.calculate_average_rate, sender=Project_employee)
 
 
 class role_employee(models.Model):
@@ -344,8 +358,8 @@ class Salary_employee(models.Model):
         master_role = Role.objects.get(name='Мастер')
         masters = Project_employee.objects.filter(role=master_role)
 
-        hours_all_masters = Time_entry.objects.filter(project_id=project, employee_id__in=
-        masters).aggregate(sum_all_hours=Sum('work_time'))
+        hours_all_masters = Time_entry.objects.filter(project_id=project, employee_id__in=masters).aggregate(
+            sum_all_hours=Sum('work_time'))
 
         # сумма рабочих часов всех мастеров на проекте числом
         hours_masters = hours_all_masters['sum_all_hours']
@@ -419,7 +433,7 @@ class Salary_employee(models.Model):
             instance.salary = hours_employee * (first_part + second_part)
 
 
-post_save.connect(Salary_employee.calculate_salary, sender=Salary_employee)
+# post_save.connect(Salary_employee.calculate_salary, sender=Salary_employee)
 
 
 class Employee_Statistics(models.Model):
@@ -476,7 +490,7 @@ class Employee_Statistics(models.Model):
         return f"Статистика {self.id} работника {self.employee_id.id}"
 
 
-post_save.connect(Employee_Statistics.calculate_statistics_data, sender=Employee_Statistics)
+# post_save.connect(Employee_Statistics.calculate_statistics_data, sender=Employee_Statistics)
 
 
 class Project_Statistics(models.Model):
@@ -512,7 +526,7 @@ class Project_Statistics(models.Model):
         return f"Статистика {self.id} проекта {self.project_id.id}"
 
 
-post_save.connect(Project_Statistics.calculate_statistics_data, sender=Project_Statistics)
+# post_save.connect(Project_Statistics.calculate_statistics_data, sender=Project_Statistics)
 
 
 class Advance_Statistics(models.Model):
@@ -550,7 +564,7 @@ class Advance_Statistics(models.Model):
         return f"Статистика авансов {self.id} работника {self.employee_id.id}"
 
 
-post_save.connect(Advance_Statistics.calculate_statistics_data, sender=Advance_Statistics)
+# post_save.connect(Advance_Statistics.calculate_statistics_data, sender=Advance_Statistics)
 
 
 class Team(models.Model):

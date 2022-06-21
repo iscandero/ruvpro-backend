@@ -1,5 +1,6 @@
 import json
 
+from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.views import View
 
@@ -56,26 +57,46 @@ class UserView(View):
     def get(self, request):
         token_data_with_bearer = request.headers['Authorization']
         token = str(token_data_with_bearer)[7:]  # по нему найти юзера
-        # need_user = User.objects.get(token_data=token)
-        #
-        # task_serialized_data = serialize('python', tasks)
-        #
-        # count_of_instance = Task.objects.count()
-        #
-        # instance_output_list_of_dicts = list(dict())
-        # for i in range(count_of_instance):
-        #     task_id = task_serialized_data[i]['pk']
-        #     fields_task_dict = task_serialized_data[i]['fields']
-        #     fields_task_dict['task_id'] = task_id
-        #     instance_output_list_of_dicts.append({'task_id': task_id,
-        #                                           'task_name': fields_task_dict['task_name'],
-        #                                           'task_description': fields_task_dict['task_description'],
-        #                                           'task_status': fields_task_dict['task_status'],
-        #                                           'folder_id': fields_task_dict['folder_id']
-        #                                           })
+        need_user = User.objects.get(token_data=token)
+        if need_user.authority == 1:
+            roles = Role.objects.filter(author_id=need_user)
+            id = need_user.id
 
-        output_data = {
-            "token": token_data_with_bearer
-        }
+            serialized_data = serialize('python', roles)
 
-        return JsonResponse(output_data, safe=False)
+            count_of_instance = roles.count()
+
+            instance_output_list_of_dicts = list(dict())
+            for i in range(count_of_instance):
+
+                id = serialized_data[i]['pk']
+                fields_dict = serialized_data[i]['fields']
+                fields_dict['id'] = id
+
+                if fields_dict['percentage'] is None:
+                    instance_output_list_of_dicts.append({'id': id,
+                                                          'name': fields_dict['name'],
+                                                          'description': fields_dict['description'],
+                                                          'color': fields_dict['color'],
+                                                          'amount': fields_dict['amount']
+                                                          })
+
+                if fields_dict['amount'] is None:
+                    instance_output_list_of_dicts.append({'id': id,
+                                                          'name': fields_dict['name'],
+                                                          'description': fields_dict['description'],
+                                                          'color': fields_dict['color'],
+                                                          'percentage': fields_dict['percentage']
+                                                          })
+            roles_dict = {
+                "roles": instance_output_list_of_dicts
+            }
+
+            output_data = {'settings': roles_dict}
+
+            return JsonResponse(output_data, status=200)
+        else:
+            data = {
+                'message': 'User has not subscription'
+            }
+            return JsonResponse(data, status=404)
