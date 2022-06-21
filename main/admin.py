@@ -33,3 +33,5 @@ admin.site.register(Employee_Statistics)
 admin.site.register(Project_Statistics)
 
 admin.site.register(Advance_Statistics)
+
+admin.site.register(role_employee)

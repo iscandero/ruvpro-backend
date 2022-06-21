@@ -13,9 +13,11 @@ class User(models.Model):
         return 'users_avatar/' + 'user_{0}/{1}'.format(self.id, filename)
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    token_data = models.TextField(verbose_name="token", unique=False, null=True, blank=True)
     name = models.CharField(verbose_name="Имя пользователя", null=False, unique=False, blank=False, max_length=255)
-    email = models.EmailField(verbose_name="email пользователя", null=True, blank=True)
-    phone = models.CharField(verbose_name="Телефон пользователя", null=True, blank=True, max_length=255)
+    email = models.EmailField(verbose_name="email пользователя", null=False, blank=False, default='admin@admin.com')
+    phone = models.CharField(verbose_name="Телефон пользователя", null=False, blank=False, max_length=255,
+                             default='+777')
     avatar = models.ImageField(verbose_name="Аватар пользователя", upload_to=user_avatar_path, null=True,
                                blank=True)
     bio = models.TextField(verbose_name="Биография пользователя", null=True, blank=True)
@@ -90,15 +92,144 @@ class Role(models.Model):
         verbose_name_plural = "Роли"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    name = models.CharField(verbose_name="Название роли", unique=True, null=False, blank=False, max_length=255)
+    name = models.CharField(verbose_name="Название роли", unique=False, null=False, blank=False, max_length=255)
     description = models.TextField(verbose_name="Описание роли", null=True, blank=True)
     color = models.CharField(verbose_name="Цвет роли HEX", unique=False, null=False, blank=False, max_length=255)
     percentage = models.FloatField(verbose_name="Доля в процентах", unique=False, null=True, blank=True)
     amount = models.FloatField(verbose_name="Размер платы", unique=False, null=True, blank=True)
     author_id = models.ForeignKey(to=User, verbose_name="ID Создателя роли", on_delete=models.CASCADE)
 
+    @staticmethod
+    def create_base_roles(sender, instance, **kwargs):
+        admin = sender.objects.get(user_id=instance.author_id.id)
+        if admin.authority == 1:
+
+            if Role.objects.filter(name='Мастер', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Мастер').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+            if Role.objects.filter(name='Ментор', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Ментор').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+            if Role.objects.filter(name='Подсобный', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Подсобный').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+            if Role.objects.filter(name='Ученик', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Ученик').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+            if Role.objects.filter(name='Журнал учета', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Журнал учета').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+            if Role.objects.filter(name='Аммортизация инструмента', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Аммортизация инструмента').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+            if Role.objects.filter(name='Испытательный срок', author_id=admin) is None:
+                copy_base_instance = Role.objects.filter(name='Испытательный срок').first()
+                copy_base_name = copy_base_instance.name
+                copy_base_description = copy_base_instance.description
+                copy_base_color = copy_base_instance.color
+                copy_base_percentage = copy_base_instance.percentage
+                copy_base_amount = copy_base_instance.amount
+                data_to_create = {
+                    'name': copy_base_name,
+                    'description': copy_base_description,
+                    'color': copy_base_color,
+                    'percentage': copy_base_percentage,
+                    'amount': copy_base_amount,
+                    'author_id': admin
+                }
+                Role.objects.create(**data_to_create)
+
+    # При создании платника создать ему прототипы базовых ролей, которые уже созданы
+
     def __str__(self):
         return f"Роль {self.id}: {self.name}"
+
+
+post_save.connect(Role.create_base_roles, sender=User)
 
 
 class Project_employee(models.Model):
@@ -108,7 +239,6 @@ class Project_employee(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     user_id = models.ForeignKey(to=User, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    role_id = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
     project_id = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -116,6 +246,19 @@ class Project_employee(models.Model):
 
 
 post_save.connect(Project.calculate_average_rate, sender=Project_employee)
+
+
+class role_employee(models.Model):
+    class Meta:
+        verbose_name = "Связь роль - работник"
+        verbose_name_plural = "Связи роли-работники"
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    employee_id = models.ForeignKey(to=Project_employee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+    role_id = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Связь роли {self.role_id.id} c работником {self.employee_id.id}"
 
 
 class Rate_entry(models.Model):
@@ -198,7 +341,7 @@ class Salary_employee(models.Model):
         # сумма рабочих часов всех работников на проекте числом
         hours_employees = hours_all_emp['sum_all_hours']
 
-        master_role = Role.objects.get(name='master')
+        master_role = Role.objects.get(name='Мастер')
         masters = Project_employee.objects.filter(role=master_role)
 
         hours_all_masters = Time_entry.objects.filter(project_id=project, employee_id__in=
@@ -207,7 +350,7 @@ class Salary_employee(models.Model):
         # сумма рабочих часов всех мастеров на проекте числом
         hours_masters = hours_all_masters['sum_all_hours']
 
-        mentor_role = Role.objects.get(name='mentor')
+        mentor_role = Role.objects.get(name='Ментор')
         mentors = Project_employee.objects.filter(role=mentor_role)
 
         hours_all_mentors = Time_entry.objects.filter(project_id=project, employee_id__in=mentors).aggregate(
@@ -216,7 +359,7 @@ class Salary_employee(models.Model):
         # сумма рабочих часов всех менторов на проекте числом
         hours_mentors = hours_all_mentors['sum_all_hours']
 
-        assist_role = Role.objects.get(name='assist')
+        assist_role = Role.objects.get(name='Подсобный')
         assists = Project_employee.objects.filter(role=assist_role)
 
         hours_all_assists = Time_entry.objects.filter(project_id=project, employee_id__in=assists).aggregate(
@@ -225,7 +368,7 @@ class Salary_employee(models.Model):
         # сумма рабочих часов всех ассистентов на проекте числом
         hours_assists = hours_all_assists['sum_all_hours']
 
-        intern_role = Role.objects.get(name='intern')
+        intern_role = Role.objects.get(name='Испытательный срок')
         interns = Project_employee.objects.filter(role=intern_role)
 
         hours_all_interns = Time_entry.objects.filter(project_id=project, employee_id__in=interns).aggregate(
@@ -234,7 +377,7 @@ class Salary_employee(models.Model):
         # сумма рабочих часов всех интернов на проекте числом
         hours_interns = hours_all_interns['sum_all_hours']
 
-        pupil_role = Role.objects.get(name='pupil')
+        pupil_role = Role.objects.get(name='Ученик')
         pupils = Project_employee.objects.filter(role=pupil_role)
 
         hours_all_pupils = Time_entry.objects.filter(project_id=project, employee_id__in=pupils).aggregate(
@@ -265,8 +408,8 @@ class Salary_employee(models.Model):
         # Промежуточная стоимость часа работы
         cost_hour = (budget_project - sum_additional_income) / hours_employees
 
-        # у ученика зп не считается, она выдаётся статично
-        if role.name != 'intern':
+        # у испытуемого зп не считается, она выдаётся статично
+        if role.name != 'Испытательный срок':
             first_part = (
                                  cost_hour + 0.2 * cost_hour * hours_assists + cost_hour * hours_interns - sum_interns_income) / (
                                  hours_masters + hours_mentors)
@@ -374,8 +517,8 @@ post_save.connect(Project_Statistics.calculate_statistics_data, sender=Project_S
 
 class Advance_Statistics(models.Model):
     class Meta:
-        verbose_name = "Статистика работника"
-        verbose_name_plural = "Статистики работников"
+        verbose_name = "Статистика аванса"
+        verbose_name_plural = "Статистики авансов"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     employee_id = models.ForeignKey(to=Project_employee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
