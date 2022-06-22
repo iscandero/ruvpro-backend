@@ -48,7 +48,7 @@ class Social(models.Model):
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     user_id = models.ForeignKey(to=User, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     social_network_id = models.ForeignKey(to=SocialNetwork, verbose_name="ID соц.сети", on_delete=models.CASCADE)
-
+    url = models.TextField(verbose_name="URL", null=True, blank=True)
     def __str__(self):
         return f"Соц.сеть {self.social_network_id.id}: {self.social_network_id.name} - Пользователь {self.user_id.id}"
 
