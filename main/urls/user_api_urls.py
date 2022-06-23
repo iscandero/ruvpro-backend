@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import usersViews
+from main.views import usersViews
 
 urlpatterns = [
     path('user/signup', usersViews.UserRegistry.as_view()),
@@ -10,5 +10,4 @@ urlpatterns = [
     path('api/user/settings/<int:role_id>', usersViews.UserViewForIndexInEnd.as_view()),
     path('api/user/logout', usersViews.LogOutView.as_view()),
     path('api/user/change-phone', usersViews.ChangePhone.as_view()),
-
 ]

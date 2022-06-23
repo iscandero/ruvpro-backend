@@ -6,18 +6,10 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import *
-from .parsers import *
+from main.models import *
+from main.parsers import *
 
-USER_NOT_FOUND_DATA = {'message': 'Пользователь не найден'}
-USER_NOT_A_SUB_DATA = {'message': 'Пользователь не имеет подписки'}
-USER_EXIST_EMAIL = {'message': 'Данный email уже зарегистрирован'}
-USER_EXIST_PHONE = {'message': 'Данный номер телефона уже зарегистрирован'}
-ROLE_NOT_FOUND_DATA = {'message': 'Роль не найдена'}
-DUPLICATION_AMOUNT_PERCENTAGE_DATA = {'message': 'Дублирование процента со значением'}
-DELETE_SUCCESS_DATA = {'message': 'Успешное удаление'}
-SUCCESS_LOGOUT = {'message': 'Успешный выход из приложения'}
-SUCCESS_CHANGE_PHONE = {'message': 'Номер телефона успешно изменён'}
+from main.const_data.template_errors import *
 
 
 class UserRegistry(View):

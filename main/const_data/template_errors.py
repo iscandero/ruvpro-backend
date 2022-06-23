@@ -1,0 +1,11 @@
+USER_NOT_FOUND_DATA = {'message': 'Пользователь не найден'}
+USER_NOT_A_SUB_DATA = {'message': 'Пользователь не имеет подписки'}
+USER_EXIST_EMAIL = {'message': 'Данный email уже зарегистрирован'}
+USER_EXIST_PHONE = {'message': 'Данный номер телефона уже зарегистрирован'}
+ROLE_NOT_FOUND_DATA = {'message': 'Роль не найдена'}
+DUPLICATION_AMOUNT_PERCENTAGE_DATA = {'message': 'Дублирование процента со значением'}
+DELETE_SUCCESS_DATA = {'message': 'Успешное удаление'}
+SUCCESS_LOGOUT = {'message': 'Успешный выход из приложения'}
+SUCCESS_CHANGE_PHONE = {'message': 'Номер телефона успешно изменён'}
+NO_PERMISSION_DATA = {'message': 'Недостаточно полномочий'}
+WORKER_NOT_FOUND = {'message': 'Работник не существует'}
