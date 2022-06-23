@@ -137,3 +137,31 @@ class TimeEntryView(View):
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteEmployeeView(View):
+    def delete(self, request, worker_id):
+        token = get_token(request)
+
+        if User.objects.filter(token_data=token):
+            user = User.objects.get(token_data=token)
+            project = Project.objects.filter(owner_id=user)
+
+            worker = ProjectEmployee.objects.get(id=worker_id)
+
+            project_with_need_worker = None
+            for i in project:
+                if worker.project_id == i:
+                    project_with_need_worker = i
+                    break
+
+            if project_with_need_worker is not None:
+                worker.delete()
+                return JsonResponse(DELETE_SUCCESS_DATA, status=200)
+
+            else:
+                return JsonResponse(NO_PERMISSION_DATA, status=404)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=404)

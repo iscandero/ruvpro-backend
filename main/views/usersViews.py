@@ -6,10 +6,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
+from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
-
-from main.const_data.template_errors import *
 
 
 class UserRegistry(View):
@@ -317,73 +316,105 @@ class UserView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class UserViewForIndexInEnd(View):
     def patch(self, request, role_id):
-        if Role.objects.filter(id=role_id):
-            role_instance = Role.objects.get(id=role_id)
+        token = get_token(request)
 
-            patch_body = json.loads(request.body)
-            name = patch_body.get('name')
-            description = patch_body.get('description')
-            color = patch_body.get('color')
-            percentage = patch_body.get('percentage')
-            amount = patch_body.get('amount')
+        if User.objects.filter(token_data=token):
+            user = User.objects.get(token_data=token)
 
-            if name is not None:
-                role_instance.name = name
-                role_instance.save(update_fields=['name'])
+            if Role.objects.filter(id=role_id):
+                role_instance = Role.objects.get(id=role_id)
 
-            if description is not None:
-                role_instance.description = description
-                role_instance.save(update_fields=['description'])
+                if role_instance.author_id == user:
 
-            if color is not None:
-                role_instance.color = color
-                role_instance.save(update_fields=['color'])
+                    patch_body = json.loads(request.body)
+                    name = patch_body.get('name')
+                    description = patch_body.get('description')
+                    color = patch_body.get('color')
+                    percentage = patch_body.get('percentage')
+                    amount = patch_body.get('amount')
 
-            if percentage is not None and amount is not None:
-                return JsonResponse(DUPLICATION_AMOUNT_PERCENTAGE_DATA, status=404)
+                    if name is not None:
+                        if role_instance.is_base:
+                            return JsonResponse(FORBIDDEN_CHANGE_BASE_ROLE_NAME, status=404)
 
-            elif percentage is not None and amount is None:
-                if role_instance.amount is not None:
-                    role_instance.amount = None
-                role_instance.percentage = percentage
-                role_instance.save(update_fields=['amount', 'percentage'])
+                        else:
+                            role_instance.name = name
+                            role_instance.save(update_fields=['name'])
 
-            elif amount is not None and percentage is None:
-                if role_instance.percentage is not None:
-                    role_instance.percentage = None
-                role_instance.amount = amount
-                role_instance.save(update_fields=['amount', 'percentage'])
+                    if description is not None:
+                        role_instance.description = description
+                        role_instance.save(update_fields=['description'])
 
-            if role_instance.percentage is not None:
-                data = {
-                    'id': role_instance.id,
-                    'name': role_instance.name,
-                    'color': role_instance.color,
-                    'percentage': role_instance.percentage
-                }
-                return JsonResponse(data, status=200)
+                    if color is not None:
+                        role_instance.color = color
+                        role_instance.save(update_fields=['color'])
 
-            if role_instance.amount is not None:
-                data = {
-                    'id': role_instance.id,
-                    'name': role_instance.name,
-                    'color': role_instance.color,
-                    'amount': role_instance.amount
-                }
-                return JsonResponse(data, status=200)
+                    if percentage is not None and amount is not None:
+                        return JsonResponse(DUPLICATION_AMOUNT_PERCENTAGE_DATA, status=404)
 
+                    elif percentage is not None and amount is None:
+                        if role_instance.amount is not None:
+                            role_instance.amount = None
+                        role_instance.percentage = percentage
+                        role_instance.save(update_fields=['amount', 'percentage'])
+
+                    elif amount is not None and percentage is None:
+                        if role_instance.percentage is not None:
+                            role_instance.percentage = None
+                        role_instance.amount = amount
+                        role_instance.save(update_fields=['amount', 'percentage'])
+
+                    if role_instance.percentage is not None:
+                        data = {
+                            'id': role_instance.id,
+                            'name': role_instance.name,
+                            'color': role_instance.color,
+                            'percentage': role_instance.percentage
+                        }
+                        return JsonResponse(data, status=200)
+
+                    if role_instance.amount is not None:
+                        data = {
+                            'id': role_instance.id,
+                            'name': role_instance.name,
+                            'color': role_instance.color,
+                            'amount': role_instance.amount
+                        }
+                        return JsonResponse(data, status=200)
+
+                else:
+                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+
+            else:
+                return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
 
         else:
-            return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
 
     def delete(self, request, role_id):
-        if Role.objects.filter(id=role_id):
-            Role.objects.get(id=role_id).delete()
+        token = get_token(request)
+        if User.objects.filter(token_data=token):
+            user = User.objects.get(token_data=token)
 
-            return JsonResponse(DELETE_SUCCESS_DATA, status=200)
+            if Role.objects.filter(id=role_id):
+                token = get_token(request)
+                user = User.objects.get(token_data=token)
+
+                role_to_delete = Role.objects.get(id=role_id)
+
+                if role_to_delete.author_id == user:
+                    role_to_delete.delete()
+
+                    return JsonResponse(DELETE_SUCCESS_DATA, status=200)
+
+                else:
+                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+
+            else:
+                return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
 
         else:
-            return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

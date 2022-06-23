@@ -86,6 +86,7 @@ class Role(models.Model):
     percentage = models.FloatField(verbose_name="Доля в процентах", unique=False, null=True, blank=True)
     amount = models.FloatField(verbose_name="Размер платы", unique=False, null=True, blank=True)
     author_id = models.ForeignKey(to=User, verbose_name="ID Создателя роли", on_delete=models.CASCADE)
+    is_base = models.BooleanField(verbose_name='Флаг бозовой роли', null=False, blank=False, default=False)
 
     # При создании платника создать ему прототипы базовых ролей, которые уже созданы
     @receiver(post_save, sender=User)
