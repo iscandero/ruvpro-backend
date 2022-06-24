@@ -1,14 +1,11 @@
-import requests
-
 import json
 
-from django.core.serializers import serialize
+import requests
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 
@@ -75,9 +72,13 @@ class UserSendCode(View):
     def post(self, request):
         post_body = json.loads(request.body)
         phone = post_body.get('phone')
+        type = post_body.get('type')
+        sms = post_body.get('sms')
 
         data_to_api = {
-            "phone": phone
+            'phone': phone,
+            'type': type,
+            'sms': sms,
         }
 
         response = requests.post(f"{BASE_URL}/api/user/send-code", json=data_to_api)
@@ -104,5 +105,88 @@ class UserRenewToken(View):
 
         if response.status_code == 200:
             user.token_data = json_resp.get('token')
+
+        return JsonResponse(json_resp, status=response.status_code)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UserCheckCode(View):
+    def post(self, request):
+        post_body = json.loads(request.body)
+
+        phone = post_body.get('phone')
+        code = post_body.get('code')
+        type = post_body.get('type')
+
+        data_to_api = {
+            "phone": phone,
+            "code": code,
+            "type": type,
+        }
+
+        response = requests.post(f"{BASE_URL}/api/user/check-code", json=data_to_api)
+        json_resp = response.json()
+
+        return JsonResponse(json_resp, status=response.status_code)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LogOutView(View):
+    def post(self, request):
+        token = get_token(request)
+        if User.objects.filter(token_data=token):
+            need_user = User.objects.get(token_data=token)
+            need_user.token_data = None
+            need_user.save(update_fields=['token_data'])
+
+        headers = {
+            "Authorization": "Bearer " + str(token)
+        }
+
+        response = requests.post(f"{BASE_URL}/api/user/logout", headers=headers)
+        json_resp = response.json()
+
+        return JsonResponse(json_resp, status=response.status_code)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ChangePinView(View):
+    def post(self, request):
+        token = get_token(request)
+        post_body = json.loads(request.body)
+
+        pin = post_body.get('pin')
+
+        data_to_api = {
+            'pin': pin
+        }
+
+        headers = {
+            "Authorization": "Bearer " + str(token)
+        }
+
+        response = requests.post(f"{BASE_URL}/api/user/logout", json=data_to_api, headers=headers)
+        json_resp = response.json()
+
+        return JsonResponse(json_resp, status=response.status_code)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ResetPinView(View):
+    def post(self, request):
+        post_body = json.loads(request.body)
+
+        pin = post_body.get('pin')
+        code = post_body.get('code')
+        phone = post_body.get('phone')
+
+        data_to_api = {
+            "pin": pin,
+            "code": code,
+            "phone": phone,
+        }
+
+        response = requests.post(f"{BASE_URL}/api/user/reset-pin", json=data_to_api)
+        json_resp = response.json()
 
         return JsonResponse(json_resp, status=response.status_code)

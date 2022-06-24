@@ -10,6 +10,7 @@ from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class UserSettingsView(View):
     def get(self, request):
@@ -368,20 +369,6 @@ class UserViewForIndexInEnd(View):
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=404)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class LogOutView(View):
-    def post(self, request):
-        token = get_token(request)
-        if User.objects.filter(token_data=token):
-            need_user = User.objects.get(token_data=token)
-            need_user.token_data = None
-            need_user.save(update_fields=['token_data'])
-            return JsonResponse(SUCCESS_LOGOUT, status=200)
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ChangePhone(View):
