@@ -10,6 +10,7 @@ from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProjectView(View):
@@ -39,7 +40,11 @@ class ProjectView(View):
                         'advance': worker['advance'],
                         'role_id': role
                     }
-                    employee = ProjectEmployee.objects.create(**data_to_create_employee)
+                    if ProjectEmployee.objects.filter(user_id=current_user, role_id=role, project_id=project):
+                        return JsonResponse(EMPLOYEE_IS_EXIST, status=404)
+
+                    else:
+                        employee = ProjectEmployee.objects.create(**data_to_create_employee)
 
                 employees = ProjectEmployee.objects.filter(project_id=project)
                 serialized_data = serialize('python', employees)
@@ -140,7 +145,7 @@ class TimeEntryView(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class DeleteEmployeeView(View):
+class WorkerViewWithIndexInEnd(View):
     def delete(self, request, worker_id):
         token = get_token(request)
 
@@ -165,3 +170,145 @@ class DeleteEmployeeView(View):
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
+    def patch(self, request, worker_id):
+        token = get_token(request)
+
+        if User.objects.filter(token_data=token):
+            user = User.objects.get(token_data=token)
+            worker = ProjectEmployee.objects.get(id=worker_id)
+
+            project = worker.project_id
+
+            if project.owner_id == user:
+                post_body = json.loads(request.body)
+
+                role_id = post_body.get('role_id')
+                rate = post_body.get('rate')
+
+                if role_id is not None:
+                    if Role.objects.filter(id=role_id):
+                        role = Role.objects.get(id=role_id)
+                        worker.role_id = role
+                        worker.save(update_fields=['role_id'])
+
+                    else:
+                        return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
+
+                if rate is not None:
+                    worker.rate = rate
+                    worker.save(update_fields=['rate'])
+
+                time_emp_on_prj = TimeEntry.objects.filter(employee_id=worker).aggregate(Sum('work_time')),
+
+                work_time = 0 if time_emp_on_prj[0]['work_time__sum'] is None else time_emp_on_prj[0]['work_time__sum']
+
+                data = {
+                    'id': worker.id,
+                    'userId': worker.user_id.id,
+                    'rate': worker.rate,
+                    'advance': worker.advance,
+                    'role_id': worker.role_id.id,
+                    'salary': worker.salary,
+                    'work_time': work_time,
+                    'name': worker.user_id.name,
+                    'project_id': worker.project_id.id,
+                }
+                return JsonResponse(data, status=200)
+
+            else:
+                return JsonResponse(NO_PERMISSION_DATA, status=404)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddWorkerView(View):
+    def post(self, request, project_id):
+        token = get_token(request)
+
+        if User.objects.filter(token_data=token):
+            user = User.objects.get(token_data=token)
+            if Project.objects.filter(id=project_id):
+                project = Project.objects.get(id=project_id)
+
+                if project.owner_id == user:
+                    post_body = json.loads(request.body)
+
+                    user_id = post_body.get('userId')
+                    need_user = User.objects.get(id=user_id)
+                    rate = post_body.get('rate')
+                    advance = post_body.get('advance')
+                    role_id = post_body.get('role_id')
+                    need_role = Role.objects.get(id=role_id)
+
+                    data_to_create = {
+                        'user_id': need_user,
+                        'rate': rate,
+                        'project_id': project,
+                        'advance': advance,
+                        'role_id': need_role
+
+                    }
+                    if ProjectEmployee.objects.filter(user_id=need_user, role_id=need_role, project_id=project):
+                        return JsonResponse(EMPLOYEE_IS_EXIST, status=404)
+
+                    else:
+                        employee = ProjectEmployee.objects.create(**data_to_create)
+
+                    avatar = None if not employee.user_id.avatar else str(employee.user_id.avatar.url)
+                    response_data = {
+                        'id': employee.id,
+                        'userId': employee.user_id.id,
+                        'rate': employee.rate,
+                        'advance': employee.advance,
+                        'role_id': employee.role_id.id,
+                        'salary': employee.salary,
+                        'work_time': 0,
+                        'avatar': avatar,
+                        'name': employee.user_id.name,
+                        'project_id': employee.project_id.id,
+                    }
+                    return JsonResponse(response_data, status=200)
+
+                else:
+                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+
+            else:
+                return JsonResponse(PROJECT_NOT_FOUND_DATA, status=404)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
+
+# class ViewPaginatorMixin(object):
+#     per_page = 3
+#     current_page = 1
+#
+#     def paginate(self, object_list, page=current_page, limit=per_page, **kwargs):
+#         try:
+#             page = int(page)
+#             if page < self.current_page:
+#                 page = self.current_page
+#         except (TypeError, ValueError):
+#             page = self.current_page
+#
+#
+#         paginator = Paginator(object_list, limit)
+#
+#         if EmptyPage:
+#             objects = paginator.page(paginator.num_pages)
+#
+#         meta = {
+#             'totalCount': objects.has_previous() and objects.previous_page_number() or None,
+#             'pageCount': objects.has_next() and objects.next_page_number() or None,
+#             'currentPage': list(objects),
+#             'perPage':
+#         }
+#         return meta
+
+# @method_decorator(csrf_exempt, name='dispatch')
+# class PaginateProjectView(View):
+#     def get(self, request, project_id):
+#

@@ -10,53 +10,6 @@ from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 
-
-class UserRegistry(View):
-    def post(self, request):
-        post_body = json.loads(request.body)
-
-        name = post_body.get('firstname')
-        phone = post_body.get('phone')
-        code = post_body.get('code')
-        email = post_body.get('email')
-        password = post_body.get('pin')  # пока на всякий случай
-
-        if code == 1:  # 1 - убрать, тут, то че дал Ваня
-            token = 1  # от Вани
-            validUntil = 1  # от Вани
-            status = 1  # от Вани
-            refreshToken = 1  # от Вани
-            user_data = {
-                'token_data': token,
-                'name': name,
-                'phone': phone,
-                'email': email
-            }
-            user_object = User.objects.create(**user_data)
-            data = {
-                'token': token,
-                'validUntil': validUntil,
-                'status': status,
-                'refreshToken': refreshToken
-            }
-        else:
-            data = {
-                'message': 'Введён неккоректный код'
-            }
-            return JsonResponse(data, status=404)
-
-
-class UserLogin(View):
-    def post(self, request):
-        post_body = json.loads(request.body)
-
-        phone = post_body.get('phone')
-        password = post_body.get('pin')
-
-        # дальше че-то от Вани
-        # найти по номеру юзера и дать ему токен, который пришлёт Ваня
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class UserSettingsView(View):
     def get(self, request):

@@ -16,8 +16,8 @@ class User(models.Model):
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     token_data = models.TextField(verbose_name="token", unique=False, null=True, blank=True)
     name = models.CharField(verbose_name="Имя пользователя", null=False, unique=False, blank=False, max_length=255)
-    email = models.EmailField(verbose_name="email пользователя", null=False, blank=False, default='admin@admin.com')
-    phone = models.CharField(verbose_name="Телефон пользователя", null=False, blank=False, max_length=255,
+    email = models.EmailField(verbose_name="email пользователя", unique=True, null=False, blank=False, default='admin@admin.com')
+    phone = models.CharField(verbose_name="Телефон пользователя", unique=True, null=False, blank=False, max_length=255,
                              default='+777')
     avatar = models.ImageField(verbose_name="Аватар пользователя", upload_to=user_avatar_path, null=True,
                                blank=True)
