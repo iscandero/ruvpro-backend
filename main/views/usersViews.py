@@ -148,18 +148,22 @@ class UserView(View):
 
                     if not Social.objects.filter(user_id=need_user, social_network_id=social_network):
                         Social.objects.create(user_id=need_user, social_network_id=social_network, url=url)
+
                     else:
                         social_instance = Social.objects.get(user_id=need_user, social_network_id=social_network)
                         social_instance.url = url
                         social_instance.save(update_fields=['url'])
+
+            fields_to_update = []
+
             if name is not None:
                 need_user.name = name
-                need_user.save(update_fields=['name'])
+                fields_to_update.append('name')
 
             if email is not None:
                 if not User.objects.filter(email=email):
                     need_user.email = email
-                    need_user.save(update_fields=['email'])
+                    fields_to_update.append('email')
 
                 else:
                     return JsonResponse(USER_EXIST_EMAIL, status=404)
@@ -167,22 +171,24 @@ class UserView(View):
             if phone is not None:
                 if not User.objects.filter(phone=phone):
                     need_user.phone = phone
-                    need_user.save(update_fields=['phone'])
+                    fields_to_update.append('phone')
                 else:
                     return JsonResponse(USER_EXIST_PHONE, status=404)
 
             # РАЗОБРАТЬСЯ
             if avatar is not None:
                 need_user.avatar = avatar
-                need_user.save(update_fields=['avatar'])
+                fields_to_update.append('avatar')
 
             if bio is not None:
                 need_user.bio = bio
-                need_user.save(update_fields=['bio'])
+                fields_to_update.append('bio')
 
             if authority is not None:
                 need_user.authority = authority
-                need_user.save(update_fields=['authority'])
+                fields_to_update.append('authority')
+
+            need_user.save(update_fields=fields_to_update)
 
             socials_user = Social.objects.filter(user_id=need_user)
 
@@ -240,7 +246,7 @@ class UserView(View):
 
             count_of_instance = socials_user.count()
 
-            instance_output_list_of_dicts = list(dict())
+            instance_output_list_of_dicts = []
             for i in range(count_of_instance):
                 fields_dict = serialized_data[i]['fields']
 

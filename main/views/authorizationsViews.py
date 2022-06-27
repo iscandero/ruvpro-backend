@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from main.models import *
 from main.parsers import *
 
-BASE_URL = 'https://api.therun.app'
+BASE_URL = 'https://api.dev.therun.app'
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -73,12 +73,12 @@ class UserSendCode(View):
         post_body = json.loads(request.body)
         phone = post_body.get('phone')
         type = post_body.get('type')
-        sms = post_body.get('sms')
+        target = post_body.get('sms')
 
         data_to_api = {
             'phone': phone,
             'type': type,
-            'sms': sms,
+            'target': target,
         }
 
         response = requests.post(f"{BASE_URL}/api/user/send-code", json=data_to_api)
@@ -155,9 +155,11 @@ class ChangePinView(View):
         token = get_token(request)
         post_body = json.loads(request.body)
 
+        old_pin = post_body.get('oldPin')
         pin = post_body.get('pin')
 
         data_to_api = {
+            'oldPin': old_pin,
             'pin': pin
         }
 

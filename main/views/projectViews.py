@@ -1,5 +1,7 @@
 import json
+import math
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -10,7 +12,81 @@ from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+
+class ViewPaginatorMixin(object):
+    min_limit = 1
+    max_limit = 100
+
+    def paginate(self, object_list, page, limit, **kwargs):
+        try:
+            page = int(page)
+            if page < 1:
+                page = 1
+        except (TypeError, ValueError):
+            page = 1
+
+        try:
+            limit = int(limit)
+            if limit < self.min_limit:
+                limit = self.min_limit
+            if limit > self.max_limit:
+                limit = self.max_limit
+        except (ValueError, TypeError):
+            limit = self.max_limit
+
+        paginator = Paginator(object_list, limit)
+        try:
+            objects = paginator.page(page)
+        except PageNotAnInteger:
+            objects = paginator.page(1)
+        except EmptyPage:
+            objects = paginator.page(paginator.num_pages)
+
+        total_count = len(object_list)
+
+        meta = {
+            'totalCount': total_count,
+            'pageCount': int(math.ceil(total_count / limit)),
+            'currentPage': page,
+            'perPage': len(objects),
+        }
+
+        data = {
+            'projects': list(objects),
+            'meta': meta
+
+        }
+        return data
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ProjectsViewWithPaginate(ViewPaginatorMixin, View):
+    def get(self, request):
+        token = get_token(request)
+        user = User.objects.filter(token_data=token).first()
+
+        if user:
+            projects = Project.objects.filter(owner_id=user)
+
+            serialized_data = serialize('python', projects)
+
+            instance_output_list_of_dicts = []
+            for project in serialized_data:
+                project_id = project['pk']
+                fields_task_dict = project['fields']
+                instance_output_list_of_dicts.append({'id': project_id,
+                                                      'name': fields_task_dict['name']
+                                                      })
+
+            page_number = request.headers['X-Pagination-Current-Page']
+
+            count_in_page = request.headers['X-Pagination-Per-Page']
+
+            return JsonResponse(self.paginate(instance_output_list_of_dicts, page_number, count_in_page), status=200)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProjectView(View):
@@ -280,35 +356,3 @@ class AddWorkerView(View):
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=404)
-
-
-# class ViewPaginatorMixin(object):
-#     per_page = 3
-#     current_page = 1
-#
-#     def paginate(self, object_list, page=current_page, limit=per_page, **kwargs):
-#         try:
-#             page = int(page)
-#             if page < self.current_page:
-#                 page = self.current_page
-#         except (TypeError, ValueError):
-#             page = self.current_page
-#
-#
-#         paginator = Paginator(object_list, limit)
-#
-#         if EmptyPage:
-#             objects = paginator.page(paginator.num_pages)
-#
-#         meta = {
-#             'totalCount': objects.has_previous() and objects.previous_page_number() or None,
-#             'pageCount': objects.has_next() and objects.next_page_number() or None,
-#             'currentPage': list(objects),
-#             'perPage':
-#         }
-#         return meta
-
-# @method_decorator(csrf_exempt, name='dispatch')
-# class PaginateProjectView(View):
-#     def get(self, request, project_id):
-#
