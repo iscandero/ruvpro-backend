@@ -22,7 +22,7 @@ class User(models.Model):
     avatar = models.ImageField(verbose_name="Аватар пользователя", upload_to=user_avatar_path, null=True,
                                blank=True)
     bio = models.TextField(verbose_name="Биография пользователя", null=True, blank=True)
-    authority = models.IntegerField(verbose_name="Полномочия пользователя", null=True, blank=True, unique=False)
+    authority = models.IntegerField(verbose_name="Полномочия пользователя", null=False, blank=False, unique=False)
 
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"

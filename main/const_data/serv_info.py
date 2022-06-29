@@ -1,0 +1,1 @@
+SERV_NAME = 'http://gorozhanin.space'

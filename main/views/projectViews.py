@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
+from main.const_data.serv_info import SERV_NAME
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
@@ -130,7 +131,7 @@ class ProjectView(View):
                 for i in range(count_of_instance):
                     id = serialized_data[i]['pk']
                     current_user = ProjectEmployee.objects.get(id=id).user_id
-                    avatar = None if not current_user.avatar else str(current_user.avatar.url)
+                    avatar = None if not current_user.avatar else SERV_NAME+str(current_user.avatar.url)
                     fields_dict = serialized_data[i]['fields']
                     instance_output_list_of_dicts.append({'id': id,
                                                           'user_id': current_user.id,
@@ -194,7 +195,7 @@ class TimeEntryView(View):
 
                     current_user = current_employee.user_id
 
-                    avatar = None if not current_user.avatar else str(current_user.avatar.url)
+                    avatar = None if not current_user.avatar else SERV_NAME+str(current_user.avatar.url)
 
                     data = {
                         'id': time_entry.id,
@@ -333,7 +334,7 @@ class AddWorkerView(View):
                     else:
                         employee = ProjectEmployee.objects.create(**data_to_create)
 
-                    avatar = None if not employee.user_id.avatar else str(employee.user_id.avatar.url)
+                    avatar = None if not employee.user_id.avatar else SERV_NAME+str(employee.user_id.avatar.url)
                     response_data = {
                         'id': employee.id,
                         'userId': employee.user_id.id,

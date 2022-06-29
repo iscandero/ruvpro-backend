@@ -6,9 +6,33 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
+from main.const_data.serv_info import SERV_NAME
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UploadFile(View):
+    def post(self, request):
+        token = get_token(request)
+        need_user = User.objects.filter(token_data=token).first()
+        if need_user:
+            files = request.FILES
+            if 'file' in files:
+                avatar = files['file']
+
+                need_user.avatar = avatar
+                need_user.save(update_fields=['avatar'])
+                output_data = {
+                    'path': str(need_user.avatar.url),
+                    'baseURL': SERV_NAME
+                }
+                return JsonResponse(output_data, status=200)
+            else:
+                return JsonResponse(NO_FILE_DATA, status=404)
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -50,16 +74,16 @@ class UserSettingsView(View):
                     "roles": instance_output_list_of_dicts
                 }
 
-                output_data = {'settings': roles_dict}
+                output_data = roles_dict
 
                 return JsonResponse(output_data, status=200)
             else:
-                output_data = {'settings': {}}
+                output_data = {'roles': {}}
 
                 return JsonResponse(output_data, status=200)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
     def post(self, request):
         token = get_token(request)
@@ -119,7 +143,7 @@ class UserSettingsView(View):
             else:
                 return JsonResponse(USER_NOT_A_SUB_DATA, status=404)
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -141,10 +165,10 @@ class UserView(View):
 
             if social_list is not None:
                 for i in range(len(social_list)):
-                    name = social_list[i]['name']
+                    name_social = social_list[i]['name']
                     url = social_list[i]['url']
 
-                    social_network = SocialNetwork.objects.get(name=name)
+                    social_network = SocialNetwork.objects.get(name=name_social)
 
                     if not Social.objects.filter(user_id=need_user, social_network_id=social_network):
                         Social.objects.create(user_id=need_user, social_network_id=social_network, url=url)
@@ -166,7 +190,8 @@ class UserView(View):
                     fields_to_update.append('email')
 
                 else:
-                    return JsonResponse(USER_EXIST_EMAIL, status=404)
+                    if need_user.email != email:
+                        return JsonResponse(USER_EXIST_EMAIL, status=404)
 
             if phone is not None:
                 if not User.objects.filter(phone=phone):
@@ -175,10 +200,10 @@ class UserView(View):
                 else:
                     return JsonResponse(USER_EXIST_PHONE, status=404)
 
-            # РАЗОБРАТЬСЯ
-            if avatar is not None:
-                need_user.avatar = avatar
-                fields_to_update.append('avatar')
+            # # РАЗОБРАТЬСЯ
+            # if avatar is not None:
+            #     need_user.avatar = File(avatar)
+            #     fields_to_update.append('avatar')
 
             if bio is not None:
                 need_user.bio = bio
@@ -186,7 +211,8 @@ class UserView(View):
 
             if authority is not None:
                 need_user.authority = authority
-                fields_to_update.append('authority')
+                need_user.save(update_fields=['authority'])
+                # fields_to_update.append('authority')
 
             need_user.save(update_fields=fields_to_update)
 
@@ -206,7 +232,7 @@ class UserView(View):
 
                 })
 
-            avatar = None if not need_user.avatar else str(need_user.avatar.url)
+            avatar = None if not need_user.avatar else SERV_NAME + str(need_user.avatar.url)
 
             data = {
                 'id': need_user.id,
@@ -221,7 +247,7 @@ class UserView(View):
             return JsonResponse(data, status=200)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
     def delete(self, request):
         token = get_token(request)
@@ -231,14 +257,14 @@ class UserView(View):
             return JsonResponse(DELETE_SUCCESS_DATA, status=200)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
     def get(self, request):
         token = get_token(request)
         if User.objects.filter(token_data=token):
             need_user = User.objects.get(token_data=token)
 
-            avatar = None if not need_user.avatar else str(need_user.avatar.url)
+            avatar = None if not need_user.avatar else SERV_NAME + str(need_user.avatar.url)
 
             socials_user = Social.objects.filter(user_id=need_user)
 
@@ -270,7 +296,7 @@ class UserView(View):
             return JsonResponse(data, status=200)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -328,6 +354,7 @@ class UserViewForIndexInEnd(View):
                         data = {
                             'id': role_instance.id,
                             'name': role_instance.name,
+                            'description': role_instance.description,
                             'color': role_instance.color,
                             'percentage': role_instance.percentage
                         }
@@ -337,6 +364,7 @@ class UserViewForIndexInEnd(View):
                         data = {
                             'id': role_instance.id,
                             'name': role_instance.name,
+                            'description': role_instance.description,
                             'color': role_instance.color,
                             'amount': role_instance.amount
                         }
@@ -349,7 +377,7 @@ class UserViewForIndexInEnd(View):
                 return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
     def delete(self, request, role_id):
         token = get_token(request)
@@ -374,7 +402,8 @@ class UserViewForIndexInEnd(View):
                 return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ChangePhone(View):
@@ -393,4 +422,4 @@ class ChangePhone(View):
                 return JsonResponse(USER_EXIST_PHONE, status=404)
 
         else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)

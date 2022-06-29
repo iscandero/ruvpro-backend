@@ -12,3 +12,4 @@ WORKER_NOT_FOUND = {'message': 'Работник не существует'}
 FORBIDDEN_CHANGE_BASE_ROLE_NAME = {'message': 'Нельзя менять название базовой роли'}
 PROJECT_NOT_FOUND_DATA = {'message': 'Проект не найден'}
 EMPLOYEE_IS_EXIST = {'message': 'Пользователь с такой ролью уже существует в данном проекте'}
+NO_FILE_DATA = {'message': 'Не выбрано ни одно фото'}
