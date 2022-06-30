@@ -292,12 +292,12 @@ class HistoryAdvance(models.Model):
 
     @receiver(post_save, sender=ProjectEmployee)
     def write_advance_to_history_model(sender, instance, created, update_fields, **kwargs):
-        if created or update_fields == {'rate'}:
+        if created or update_fields == {'advance'}:
             if instance.advance is not None:
                 HistoryAdvance.objects.create(advance=instance.advance, employee_id=instance)
 
     def __str__(self):
-        return f"Ставка {self.id} работника {self.employee_id.id}"
+        return f"Аванс {self.id} - работник {self.employee_id.id}"
 
 
 class TimeEntry(models.Model):

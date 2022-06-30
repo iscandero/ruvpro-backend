@@ -41,6 +41,7 @@ class UserSettingsView(View):
         token = get_token(request)
         if User.objects.filter(token_data=token):
             need_user = User.objects.get(token_data=token)
+
             if need_user.authority == 1:
                 roles = Role.objects.filter(author_id=need_user)
 
@@ -157,7 +158,7 @@ class UserView(View):
             name = patch_body.get('name')
             email = patch_body.get('email')
             phone = patch_body.get('phone')
-            avatar = patch_body.get('avatar')
+            # avatar = patch_body.get('avatar')
             bio = patch_body.get('bio')
             authority = patch_body.get('authority')
 
@@ -200,7 +201,6 @@ class UserView(View):
                 else:
                     return JsonResponse(USER_EXIST_PHONE, status=404)
 
-            # # РАЗОБРАТЬСЯ
             # if avatar is not None:
             #     need_user.avatar = File(avatar)
             #     fields_to_update.append('avatar')
@@ -220,11 +220,9 @@ class UserView(View):
 
             serialized_data = serialize('python', socials_user)
 
-            count_of_instance = socials_user.count()
-
-            instance_output_list_of_dicts = list(dict())
-            for i in range(count_of_instance):
-                fields_dict = serialized_data[i]['fields']
+            instance_output_list_of_dicts = []
+            for social_network in serialized_data:
+                fields_dict = social_network['fields']
 
                 instance_output_list_of_dicts.append({
                     'name': SocialNetwork.objects.get(id=fields_dict['social_network_id']).name,
@@ -381,13 +379,10 @@ class UserViewForIndexInEnd(View):
 
     def delete(self, request, role_id):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        user = User.objects.filter(token_data=token).first()
 
+        if user:
             if Role.objects.filter(id=role_id):
-                token = get_token(request)
-                user = User.objects.get(token_data=token)
-
                 role_to_delete = Role.objects.get(id=role_id)
 
                 if role_to_delete.author_id == user:
@@ -411,8 +406,8 @@ class ChangePhone(View):
         token = get_token(request)
         if User.objects.filter(token_data=token):
             need_user = User.objects.get(token_data=token)
-            patch_body = json.loads(request.body)
-            phone = patch_body.get('phone')
+            post_body = json.loads(request.body)
+            phone = post_body.get('phone')
 
             if not User.objects.filter(phone=phone):
                 need_user.phone = phone

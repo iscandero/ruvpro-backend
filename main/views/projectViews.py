@@ -61,10 +61,11 @@ class ViewPaginatorMixin(object):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ProjectsViewWithPaginate(ViewPaginatorMixin, View):
+class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
     def get(self, request):
         token = get_token(request)
         user = User.objects.filter(token_data=token).first()
+        flag_short = request.headers['short']
 
         if user:
             projects = Project.objects.filter(owner_id=user)
@@ -72,21 +73,161 @@ class ProjectsViewWithPaginate(ViewPaginatorMixin, View):
             serialized_data = serialize('python', projects)
 
             instance_output_list_of_dicts = []
-            for project in serialized_data:
-                project_id = project['pk']
-                fields_task_dict = project['fields']
-                instance_output_list_of_dicts.append({'id': project_id,
-                                                      'name': fields_task_dict['name']
-                                                      })
 
-            page_number = request.headers['X-Pagination-Current-Page']
+            if flag_short == 'True':
+                for project in serialized_data:
+                    project_id = project['pk']
+                    fields_task_dict = project['fields']
+                    instance_output_list_of_dicts.append({'id': project_id,
+                                                          'name': fields_task_dict['name']
+                                                          })
+            else:
+                for project in serialized_data:
+                    project_id = project['pk']
+                    fields_task_dict = project['fields']
+                    instance_output_list_of_dicts.append({'id': project_id,
+                                                          'name': fields_task_dict['name'],
+                                                          'budget': fields_task_dict['budget'],
+                                                          'isArchived': fields_task_dict['is_archived'],
+                                                          'workTime': fields_task_dict['work_time'],
+                                                          'averageRate': fields_task_dict['average_rate']
+                                                          })
 
-            count_in_page = request.headers['X-Pagination-Per-Page']
+            page_number = int(request.headers['X-Pagination-Current-Page'])
+
+            count_in_page = int(request.headers['X-Pagination-Per-Page'])
 
             return JsonResponse(self.paginate(instance_output_list_of_dicts, page_number, count_in_page), status=200)
 
         else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetProjectsView(View):
+    def get(self, request):
+        token = get_token(request)
+        user = User.objects.filter(token_data=token).first()
+        flag_short = request.headers['short']
+
+        if user:
+            projects = Project.objects.filter(owner_id=user)
+
+            serialized_data = serialize('python', projects)
+
+            instance_output_list_of_dicts = []
+
+            if flag_short == 'True':
+                for project in serialized_data:
+                    project_id = project['pk']
+                    fields_task_dict = project['fields']
+                    instance_output_list_of_dicts.append({'id': project_id,
+                                                          'name': fields_task_dict['name']
+                                                          })
+            else:
+                for project in serialized_data:
+                    project_id = project['pk']
+                    fields_task_dict = project['fields']
+                    instance_output_list_of_dicts.append({'id': project_id,
+                                                          'name': fields_task_dict['name'],
+                                                          'budget': fields_task_dict['budget'],
+                                                          'isArchived': fields_task_dict['is_archived'],
+                                                          'workTime': fields_task_dict['work_time'],
+                                                          'averageRate': fields_task_dict['average_rate']
+                                                          })
+
+            output_data = {
+                "projects": instance_output_list_of_dicts
+            }
+
+            return JsonResponse(output_data, status=200)
+
+        else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetProjectView(View):
+    def get(self, request, project_id):
+        token = get_token(request)
+        user = User.objects.filter(token_data=token).first()
+
+        if user:
+            project = Project.objects.filter(id=project_id).first()
+            if project:
+                if project.owner_id == user:
+                    employees_list = ProjectEmployee.objects.filter(project_id=project)
+
+                    serialized_data = serialize('python', employees_list)
+
+                    instance_output_list_of_dicts = []
+                    for employee in serialized_data:
+                        fields_dict = employee['fields']
+                        id = employee['pk']
+
+                        time_emp_on_prj = TimeEntry.objects.filter(employee_id_id=id).aggregate(Sum('work_time')),
+                        work_time = 0 if time_emp_on_prj[0]['work_time__sum'] is None else time_emp_on_prj[0][
+                            'work_time__sum']
+
+                        user = User.objects.get(id=fields_dict['user_id'])
+                        avatar = None if not user.avatar else SERV_NAME + str(user.avatar.url)
+
+                        instance_output_list_of_dicts.append({
+                            'id': id,
+                            'userId': fields_dict['user_id'],
+                            'rate': fields_dict['rate'],
+                            'advance': fields_dict['advance'],
+                            'role_id': fields_dict['role_id'],
+                            'salary': fields_dict['salary'],
+                            'work_time': work_time,
+                            'avatar': avatar,
+                            'project_id': project_id
+                        })
+
+                    output_data = {
+                        'id': project.id,
+                        'name': project.name,
+                        'workers': instance_output_list_of_dicts,
+                        'budget': project.budget,
+                        'isArchived': project.is_archived,
+                        'workTime': project.work_time,
+                        'averageRate': project.average_rate,
+                    }
+
+                    return JsonResponse(output_data, status=200)
+
+                else:
+                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+            else:
+                return JsonResponse(PROJECT_NOT_FOUND_DATA, status=404)
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SetCompleteProjectView(View):
+    def put(self, request, project_id):
+        token = get_token(request)
+        user = User.objects.filter(token_data=token).first()
+
+        if user:
+            project = Project.objects.filter(id=project_id).first()
+            if project:
+                if project.owner_id == user:
+                    put_body = json.loads(request.body)
+                    is_archived = put_body.get('isArchived')
+
+                    project.is_archived = is_archived
+                    project.save(update_fields=['is_archived'])
+
+                    return JsonResponse(SUCCESS_DATA, status=200)
+
+                else:
+                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+            else:
+                return JsonResponse(PROJECT_NOT_FOUND_DATA, status=404)
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -103,6 +244,7 @@ class ProjectView(View):
                 budget = post_body.get('budget')
 
                 project = Project.objects.create(name=name, budget=budget, is_archived=False, owner_id=user)
+                id_project = project.id
 
                 for worker in workers_list:
                     current_user = User.objects.get(id=worker['userId'])
@@ -121,18 +263,20 @@ class ProjectView(View):
                         return JsonResponse(EMPLOYEE_IS_EXIST, status=404)
 
                     else:
-                        employee = ProjectEmployee.objects.create(**data_to_create_employee)
+                        ProjectEmployee.objects.create(**data_to_create_employee)
 
                 employees = ProjectEmployee.objects.filter(project_id=project)
-                serialized_data = serialize('python', employees)
-                count_of_instance = employees.count()
-                instance_output_list_of_dicts = list(dict())
 
-                for i in range(count_of_instance):
-                    id = serialized_data[i]['pk']
+                serialized_data = serialize('python', employees)
+
+                instance_output_list_of_dicts = []
+                for worker in serialized_data:
+                    id = worker['pk']
                     current_user = ProjectEmployee.objects.get(id=id).user_id
-                    avatar = None if not current_user.avatar else SERV_NAME+str(current_user.avatar.url)
-                    fields_dict = serialized_data[i]['fields']
+
+                    avatar = None if not current_user.avatar else SERV_NAME + str(current_user.avatar.url)
+
+                    fields_dict = worker['fields']
                     instance_output_list_of_dicts.append({'id': id,
                                                           'user_id': current_user.id,
                                                           'rate': fields_dict['rate'],
@@ -142,7 +286,7 @@ class ProjectView(View):
                                                           'work_time': 0,
                                                           'avatar': avatar,
                                                           'name': current_user.name,
-                                                          'project_id': project.id,
+                                                          'project_id': id_project,
                                                           })
 
                 data = {
@@ -162,6 +306,37 @@ class ProjectView(View):
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AdvanceView(View):
+    def put(self, request):
+        put_body = json.loads(request.body)
+
+        id_worker = put_body.get('workerId')
+        advance = put_body.get('advance')
+
+        token = get_token(request)
+        user = User.objects.filter(token_data=token).first()
+
+        if user:
+            worker = ProjectEmployee.objects.filter(id=id_worker).first()
+
+            if worker:
+                if worker.project_id.owner_id == user:
+                    worker.advance = advance
+                    worker.save(update_fields=['advance'])
+
+                    return JsonResponse(SUCCESS_DATA, status=200)
+
+                else:
+                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+
+            else:
+                return JsonResponse(WORKER_NOT_FOUND, status=404)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -195,7 +370,7 @@ class TimeEntryView(View):
 
                     current_user = current_employee.user_id
 
-                    avatar = None if not current_user.avatar else SERV_NAME+str(current_user.avatar.url)
+                    avatar = None if not current_user.avatar else SERV_NAME + str(current_user.avatar.url)
 
                     data = {
                         'id': time_entry.id,
@@ -334,7 +509,7 @@ class AddWorkerView(View):
                     else:
                         employee = ProjectEmployee.objects.create(**data_to_create)
 
-                    avatar = None if not employee.user_id.avatar else SERV_NAME+str(employee.user_id.avatar.url)
+                    avatar = None if not employee.user_id.avatar else SERV_NAME + str(employee.user_id.avatar.url)
                     response_data = {
                         'id': employee.id,
                         'userId': employee.user_id.id,
