@@ -16,7 +16,7 @@ from main.parsers import *
 class UploadFile(View):
     def post(self, request):
         token = get_token(request)
-        need_user = User.objects.filter(token_data=token).first()
+        need_user = AppUser.objects.filter(token_data=token).first()
         if need_user:
             files = request.FILES
             if 'file' in files:
@@ -39,8 +39,8 @@ class UploadFile(View):
 class UserSettingsView(View):
     def get(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            need_user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            need_user = AppUser.objects.get(token_data=token)
 
             if need_user.authority == 1:
                 roles = Role.objects.filter(author_id=need_user)
@@ -88,11 +88,11 @@ class UserSettingsView(View):
 
     def post(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            if User.objects.get(token_data=token).authority == 1:
+        if AppUser.objects.filter(token_data=token):
+            if AppUser.objects.get(token_data=token).authority == 1:
                 post_body = json.loads(request.body)
 
-                author_id = User.objects.get(token_data=token)
+                author_id = AppUser.objects.get(token_data=token)
 
                 name = post_body.get('name')
                 description = post_body.get('description')
@@ -151,8 +151,8 @@ class UserSettingsView(View):
 class UserView(View):
     def patch(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            need_user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            need_user = AppUser.objects.get(token_data=token)
 
             patch_body = json.loads(request.body)
             name = patch_body.get('name')
@@ -186,7 +186,7 @@ class UserView(View):
                 fields_to_update.append('name')
 
             if email is not None:
-                if not User.objects.filter(email=email):
+                if not AppUser.objects.filter(email=email):
                     need_user.email = email
                     fields_to_update.append('email')
 
@@ -195,7 +195,7 @@ class UserView(View):
                         return JsonResponse(USER_EXIST_EMAIL, status=404)
 
             if phone is not None:
-                if not User.objects.filter(phone=phone):
+                if not AppUser.objects.filter(phone=phone):
                     need_user.phone = phone
                     fields_to_update.append('phone')
                 else:
@@ -249,8 +249,8 @@ class UserView(View):
 
     def delete(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            User.objects.get(token_data=token).delete()
+        if AppUser.objects.filter(token_data=token):
+            AppUser.objects.get(token_data=token).delete()
 
             return JsonResponse(DELETE_SUCCESS_DATA, status=200)
 
@@ -259,8 +259,8 @@ class UserView(View):
 
     def get(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            need_user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            need_user = AppUser.objects.get(token_data=token)
 
             avatar = None if not need_user.avatar else SERV_NAME + str(need_user.avatar.url)
 
@@ -302,8 +302,8 @@ class UserViewForIndexInEnd(View):
     def patch(self, request, role_id):
         token = get_token(request)
 
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            user = AppUser.objects.get(token_data=token)
 
             if Role.objects.filter(id=role_id):
                 role_instance = Role.objects.get(id=role_id)
@@ -379,7 +379,7 @@ class UserViewForIndexInEnd(View):
 
     def delete(self, request, role_id):
         token = get_token(request)
-        user = User.objects.filter(token_data=token).first()
+        user = AppUser.objects.filter(token_data=token).first()
 
         if user:
             if Role.objects.filter(id=role_id):
@@ -404,12 +404,12 @@ class UserViewForIndexInEnd(View):
 class ChangePhone(View):
     def post(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            need_user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            need_user = AppUser.objects.get(token_data=token)
             post_body = json.loads(request.body)
             phone = post_body.get('phone')
 
-            if not User.objects.filter(phone=phone):
+            if not AppUser.objects.filter(phone=phone):
                 need_user.phone = phone
                 need_user.save(update_fields=['phone'])
                 return JsonResponse(SUCCESS_CHANGE_PHONE, status=200)

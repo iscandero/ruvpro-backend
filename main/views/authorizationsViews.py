@@ -42,7 +42,7 @@ class UserRegistry(View):
                 'phone': phone,
             }
 
-            User.objects.create(**data_to_create_user)
+            AppUser.objects.create(**data_to_create_user)
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -60,7 +60,7 @@ class UserLogin(View):
         response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
         json_resp = response.json()
         token = json_resp.get('token')
-        user = User.objects.get(phone=phone)
+        user = AppUser.objects.get(phone=phone)
         user.token_data = token
         user.save(update_fields=['token_data'])
 
@@ -98,7 +98,7 @@ class UserRenewToken(View):
             'refreshToken': refreshToken,
         }
 
-        user = User.objects.get(token_data=refreshToken)
+        user = AppUser.objects.get(token_data=refreshToken)
 
         response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api)
         json_resp = response.json()
@@ -134,8 +134,8 @@ class UserCheckCode(View):
 class LogOutView(View):
     def post(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            need_user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            need_user = AppUser.objects.get(token_data=token)
             need_user.token_data = None
             need_user.save(update_fields=['token_data'])
 
@@ -167,7 +167,7 @@ class ChangePinView(View):
             "Authorization": "Bearer " + str(token)
         }
 
-        response = requests.post(f"{BASE_URL}/api/user/logout", json=data_to_api, headers=headers)
+        response = requests.post(f"{BASE_URL}/api/user/change-pin", json=data_to_api, headers=headers)
         json_resp = response.json()
 
         return JsonResponse(json_resp, status=response.status_code)

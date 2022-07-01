@@ -64,7 +64,7 @@ class ViewPaginatorMixin(object):
 class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
     def get(self, request):
         token = get_token(request)
-        user = User.objects.filter(token_data=token).first()
+        user = AppUser.objects.filter(token_data=token).first()
         flag_short = request.headers['short']
 
         if user:
@@ -107,7 +107,7 @@ class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
 class GetProjectsView(View):
     def get(self, request):
         token = get_token(request)
-        user = User.objects.filter(token_data=token).first()
+        user = AppUser.objects.filter(token_data=token).first()
         flag_short = request.headers['short']
 
         if user:
@@ -150,7 +150,7 @@ class GetProjectsView(View):
 class GetProjectView(View):
     def get(self, request, project_id):
         token = get_token(request)
-        user = User.objects.filter(token_data=token).first()
+        user = AppUser.objects.filter(token_data=token).first()
 
         if user:
             project = Project.objects.filter(id=project_id).first()
@@ -169,7 +169,7 @@ class GetProjectView(View):
                         work_time = 0 if time_emp_on_prj[0]['work_time__sum'] is None else time_emp_on_prj[0][
                             'work_time__sum']
 
-                        user = User.objects.get(id=fields_dict['user_id'])
+                        user = AppUser.objects.get(id=fields_dict['user_id'])
                         avatar = None if not user.avatar else SERV_NAME + str(user.avatar.url)
 
                         instance_output_list_of_dicts.append({
@@ -208,7 +208,7 @@ class GetProjectView(View):
 class SetCompleteProjectView(View):
     def put(self, request, project_id):
         token = get_token(request)
-        user = User.objects.filter(token_data=token).first()
+        user = AppUser.objects.filter(token_data=token).first()
 
         if user:
             project = Project.objects.filter(id=project_id).first()
@@ -234,8 +234,8 @@ class SetCompleteProjectView(View):
 class ProjectView(View):
     def post(self, request):
         token = get_token(request)
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            user = AppUser.objects.get(token_data=token)
             if user.authority == 1:
 
                 post_body = json.loads(request.body)
@@ -247,7 +247,7 @@ class ProjectView(View):
                 id_project = project.id
 
                 for worker in workers_list:
-                    current_user = User.objects.get(id=worker['userId'])
+                    current_user = AppUser.objects.get(id=worker['userId'])
 
                     role_id = worker['role_id']
                     role = Role.objects.get(id=role_id)
@@ -317,7 +317,7 @@ class AdvanceView(View):
         advance = put_body.get('advance')
 
         token = get_token(request)
-        user = User.objects.filter(token_data=token).first()
+        user = AppUser.objects.filter(token_data=token).first()
 
         if user:
             worker = ProjectEmployee.objects.filter(id=id_worker).first()
@@ -344,8 +344,8 @@ class TimeEntryView(View):
     def post(self, request, project_id):
         token = get_token(request)
 
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            user = AppUser.objects.get(token_data=token)
 
             project = Project.objects.get(id=project_id)
 
@@ -401,8 +401,8 @@ class WorkerViewWithIndexInEnd(View):
     def delete(self, request, worker_id):
         token = get_token(request)
 
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            user = AppUser.objects.get(token_data=token)
             project = Project.objects.filter(owner_id=user)
 
             worker = ProjectEmployee.objects.get(id=worker_id)
@@ -426,8 +426,8 @@ class WorkerViewWithIndexInEnd(View):
     def patch(self, request, worker_id):
         token = get_token(request)
 
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            user = AppUser.objects.get(token_data=token)
             worker = ProjectEmployee.objects.get(id=worker_id)
 
             project = worker.project_id
@@ -480,8 +480,8 @@ class AddWorkerView(View):
     def post(self, request, project_id):
         token = get_token(request)
 
-        if User.objects.filter(token_data=token):
-            user = User.objects.get(token_data=token)
+        if AppUser.objects.filter(token_data=token):
+            user = AppUser.objects.get(token_data=token)
             if Project.objects.filter(id=project_id):
                 project = Project.objects.get(id=project_id)
 
@@ -489,7 +489,7 @@ class AddWorkerView(View):
                     post_body = json.loads(request.body)
 
                     user_id = post_body.get('userId')
-                    need_user = User.objects.get(id=user_id)
+                    need_user = AppUser.objects.get(id=user_id)
                     rate = post_body.get('rate')
                     advance = post_body.get('advance')
                     role_id = post_body.get('role_id')
