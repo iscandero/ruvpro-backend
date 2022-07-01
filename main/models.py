@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Sum, Avg
+from django.db.models import Avg
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -47,12 +47,12 @@ class Social(models.Model):
         verbose_name_plural = "Связи пользователей и социальных сетей"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    user_id = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    social_network_id = models.ForeignKey(to=SocialNetwork, verbose_name="ID соц.сети", on_delete=models.CASCADE)
+    user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+    social_network = models.ForeignKey(to=SocialNetwork, verbose_name="ID соц.сети", on_delete=models.CASCADE)
     url = models.TextField(verbose_name="URL", null=True, blank=True)
 
     def __str__(self):
-        return f"Соц.сеть {self.social_network_id.id}: {self.social_network_id.name} - Пользователь {self.user_id}"
+        return f"Соц.сеть {self.social_network.id}: {self.social_network.name} - Пользователь {self.user}"
 
 
 class Project(models.Model):
@@ -65,8 +65,8 @@ class Project(models.Model):
     budget = models.FloatField(verbose_name="Бюджет проекта", unique=False, null=True,
                                blank=True)
     is_archived = models.BooleanField(verbose_name="Флаг архивности проекта", unique=False, null=False, blank=False)
-    owner_id = models.ForeignKey(to=AppUser, verbose_name="ID Создателя", null=False, blank=False,
-                                 on_delete=models.PROTECT)
+    owner = models.ForeignKey(to=AppUser, verbose_name="ID Создателя", null=False, blank=False,
+                              on_delete=models.PROTECT)
     work_time = models.FloatField(verbose_name="Общее рабочее время", unique=False, null=False, blank=False, default=0)
 
     average_rate = models.FloatField(verbose_name="Средняя ставка", unique=False, null=False, blank=False, default=0)
@@ -108,10 +108,10 @@ class ProjectEmployee(models.Model):
         verbose_name_plural = "Работники"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    user_id = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    project_id = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
+    user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+    project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
     rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=False, blank=False)
-    role_id = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
+    role = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
                                default=0)
@@ -119,11 +119,11 @@ class ProjectEmployee(models.Model):
     @staticmethod
     def calculate_project_average_rate(sender, instance, created, update_fields, **kwargs):
         if created or update_fields == {'rate'}:
-            avg_rate = sender.objects.filter(project_id=instance.project_id).aggregate(avg_rate=Avg('rate'))
-            instance.project_id.average_rate = avg_rate['avg_rate']
+            avg_rate = sender.objects.filter(project=instance.project).aggregate(avg_rate=Avg('rate'))
+            instance.project.average_rate = avg_rate['avg_rate']
 
     def __str__(self):
-        return f"Работник {self.id}: User_id {self.user_id}"
+        return f"Работник {self.id}: User {self.user}"
 
 
 post_save.connect(ProjectEmployee.calculate_project_average_rate, sender=ProjectEmployee)
@@ -136,16 +136,16 @@ class HistoryRate(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=False, blank=False)
-    employee_id = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
     date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
 
     @receiver(post_save, sender=ProjectEmployee)
-    def write_rate_to_history_model(self, instance, created, update_fields, **kwargs):
+    def write_rate_to_history_model(sender, instance, created, update_fields, **kwargs):
         if created or update_fields == {'rate'}:
-            HistoryRate.objects.create(rate=instance.rate, employee_id=instance)
+            HistoryRate.objects.create(rate=instance.rate, employee=instance)
 
     def __str__(self):
-        return f"Ставка {self.id} работника {self.employee_id.id}"
+        return f"Ставка {self.id} работника {self.employee.id}"
 
 
 class HistoryAdvance(models.Model):
@@ -155,17 +155,17 @@ class HistoryAdvance(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     advance = models.FloatField(verbose_name="Размер аванса", null=False, blank=False, unique=False)
-    employee_id = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
     date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
 
     @receiver(post_save, sender=ProjectEmployee)
-    def write_advance_to_history_model(self, instance, created, update_fields, **kwargs):
+    def write_advance_to_history_model(sender, instance, created, update_fields, **kwargs):
         if created or update_fields == {'advance'}:
             if instance.advance is not None:
-                HistoryAdvance.objects.create(advance=instance.advance, employee_id=instance)
+                HistoryAdvance.objects.create(advance=instance.advance, employee=instance)
 
     def __str__(self):
-        return f"Аванс {self.id} - работник {self.employee_id.id}"
+        return f"Аванс {self.id} - работник {self.employee.id}"
 
 
 class TimeEntry(models.Model):
@@ -175,20 +175,19 @@ class TimeEntry(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     initiator = models.ForeignKey(to=AppUser, verbose_name="ID Инициатора", unique=False, on_delete=models.CASCADE)
-    employee_id = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
-    # project_id = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE, default=0)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
     date = models.DateField(verbose_name="Дата", unique=False, null=False,
                             blank=False)
     work_time = models.FloatField(verbose_name="Выданное рабочее время", unique=False, null=False, blank=False)
 
     @staticmethod
-    def calculate_project_work_time(instance, created, update_fields, **kwargs):
+    def calculate_project_work_time(sender, instance, created, update_fields, **kwargs):
         if created or update_fields == {'work_time'}:
-            project = instance.employee_id.project_id
+            project = instance.employee.project
             project.work_time += instance.work_time
 
     def __str__(self):
-        return f"Рабочее время {self.id} работника {self.employee_id.id}"
+        return f"Рабочее время {self.id} работника {self.employee.id}"
 
 
 post_save.connect(TimeEntry.calculate_project_work_time, sender=TimeEntry)
@@ -200,7 +199,7 @@ class EmployeeStatistics(models.Model):
         verbose_name_plural = "Статистики работников"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    employee_id = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
                                   blank=False)
     end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
@@ -216,7 +215,7 @@ class EmployeeStatistics(models.Model):
     rate = models.FloatField(verbose_name="Текущая ставка рабочего", unique=False, null=False, blank=False, default=0)
 
     def __str__(self):
-        return f"Статистика {self.id} работника {self.employee_id.id}"
+        return f"Статистика {self.id} работника {self.employee.id}"
 
 
 class ProjectStatistics(models.Model):
@@ -225,7 +224,7 @@ class ProjectStatistics(models.Model):
         verbose_name_plural = "Статистики проектов"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    project_id = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE, default=0)
+    project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE, default=0)
     start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
                                   blank=False)
     end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
@@ -233,7 +232,7 @@ class ProjectStatistics(models.Model):
     income = models.FloatField(verbose_name="Доход всех работников", null=False, blank=False, unique=False, default=0)
 
     def __str__(self):
-        return f"Статистика {self.id} проекта {self.project_id.id}"
+        return f"Статистика {self.id} проекта {self.project.id}"
 
 
 class AdvanceStatistics(models.Model):
@@ -242,7 +241,7 @@ class AdvanceStatistics(models.Model):
         verbose_name_plural = "Статистики авансов"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    employee_id = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
                                   blank=False)
     end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
@@ -253,7 +252,7 @@ class AdvanceStatistics(models.Model):
                                 default=0)
 
     def __str__(self):
-        return f"Статистика авансов {self.id} работника {self.employee_id.id}"
+        return f"Статистика авансов {self.id} работника {self.employee.id}"
 
 
 class Team(models.Model):
@@ -262,8 +261,8 @@ class Team(models.Model):
         verbose_name_plural = "Команды"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    owner_id = models.ForeignKey(to=AppUser, verbose_name="ID Создателя", null=False, blank=False,
-                                 on_delete=models.PROTECT)
+    owner = models.ForeignKey(to=AppUser, verbose_name="ID Создателя", null=False, blank=False,
+                              on_delete=models.PROTECT)
 
     def __str__(self):
         return f"Команда {self.id}"
@@ -275,8 +274,8 @@ class UsersTeam(models.Model):
         verbose_name_plural = "Связи команды с участниками"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    user_id = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    team_id = models.ForeignKey(to=Team, verbose_name="ID команды", on_delete=models.CASCADE)
+    user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+    team = models.ForeignKey(to=Team, verbose_name="ID команды", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Команда {self.team_id.id} - Пользователь {self.user_id.id}"
+        return f"Команда {self.team.id} - Пользователь {self.user.id}"

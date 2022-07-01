@@ -6,4 +6,4 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
-        from .signals.role_signals import create_or_delete_base_roles, post_save_signal_with_sender_project
+        pass
