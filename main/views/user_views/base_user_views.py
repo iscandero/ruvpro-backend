@@ -6,12 +6,11 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from main.const_data.serv_info import SERV_NAME
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 from main.services.social.selectors import get_socials_by_user
-from main.services.user.selectors import get_app_user_by_token, is_exist_user_phone
+from main.services.user.selectors import get_app_user_by_token, is_exist_user_phone, get_avatar_path
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -92,7 +91,7 @@ class UserView(View):
 
                 })
 
-            avatar = None if not need_user.avatar else SERV_NAME + str(need_user.avatar.url)
+            avatar = get_avatar_path(user=need_user)
 
             data = {
                 'id': need_user.id,
@@ -125,7 +124,7 @@ class UserView(View):
         need_user = get_app_user_by_token(token=token)
 
         if need_user:
-            avatar = None if not need_user.avatar else SERV_NAME + str(need_user.avatar.url)
+            avatar = get_avatar_path(user=need_user)
             socials_user = get_socials_by_user(user=need_user)
 
             serialized_data = serialize('python', socials_user)

@@ -11,3 +11,7 @@ def get_worker_by_id(worker_id: int):
 
 def get_workers_by_project(project: Project):
     return ProjectEmployee.objects.filter(project=project)
+
+
+def get_ids_workers_by_project(project: Project):
+    return get_workers_by_project(project=project).values_list('id', flat=True)

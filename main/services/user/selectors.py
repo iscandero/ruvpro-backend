@@ -1,3 +1,4 @@
+from main.const_data.serv_info import SERV_NAME
 from main.models import AppUser, ProjectEmployee
 
 
@@ -19,3 +20,7 @@ def get_app_user_by_id(id: int):
 
 def get_app_user_by_worker(worker: ProjectEmployee):
     return worker.user
+
+
+def get_avatar_path(user: AppUser):
+    return None if not user.avatar else SERV_NAME + str(user.avatar.url)

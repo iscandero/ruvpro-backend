@@ -67,7 +67,7 @@ class Project(models.Model):
     is_archived = models.BooleanField(verbose_name="Флаг архивности проекта", unique=False, null=False, blank=False)
     owner = models.ForeignKey(to=AppUser, verbose_name="ID Создателя", null=False, blank=False,
                               on_delete=models.PROTECT)
-    work_time = models.FloatField(verbose_name="Общее рабочее время", unique=False, null=False, blank=False, default=0)
+    work_time = models.FloatField(verbose_name="Общее рабочее время", unique=False, null=True, blank=False, default=0)
 
     average_rate = models.FloatField(verbose_name="Средняя ставка", unique=False, null=False, blank=False, default=0)
 
@@ -115,6 +115,8 @@ class ProjectEmployee(models.Model):
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
                                default=0)
+    work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=False,
+                                  default=0)
 
     @staticmethod
     def calculate_project_average_rate(sender, instance, created, update_fields, **kwargs):
@@ -180,17 +182,8 @@ class TimeEntry(models.Model):
                             blank=False)
     work_time = models.FloatField(verbose_name="Выданное рабочее время", unique=False, null=False, blank=False)
 
-    @staticmethod
-    def calculate_project_work_time(sender, instance, created, update_fields, **kwargs):
-        if created or update_fields == {'work_time'}:
-            project = instance.employee.project
-            project.work_time += instance.work_time
-
     def __str__(self):
         return f"Рабочее время {self.id} работника {self.employee.id}"
-
-
-post_save.connect(TimeEntry.calculate_project_work_time, sender=TimeEntry)
 
 
 class EmployeeStatistics(models.Model):

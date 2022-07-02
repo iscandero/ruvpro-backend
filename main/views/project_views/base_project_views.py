@@ -5,14 +5,16 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from main.const_data.serv_info import SERV_NAME
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
 from main.services.project.selectors import get_project_by_id
+from main.services.project.use_cases import get_full_output_project_data
 from main.services.role.project_role.selectors import get_role_by_name_and_author_and_project
+from main.services.role.use_cases import get_pretty_view_roles_by_project
 from main.services.user.selectors import get_app_user_by_token, get_app_user_by_id
-from main.services.worker.selectors import get_workers_by_project
+
+from main.services.worker.use_cases import get_pretty_view_workers_by_project
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -73,57 +75,12 @@ class ProjectView(View):
                     }
                     ProjectEmployee.objects.create(**data_to_create_employee)
 
-                employees = get_workers_by_project(project=project)
+                workers_output_list_of_dicts = get_pretty_view_workers_by_project(project=project)
 
-                workers_output_list_of_dicts = []
-                for worker in employees:
-                    current_user = worker.user
-                    avatar = None if not current_user.avatar else SERV_NAME + str(current_user.avatar.url)
-                    workers_output_list_of_dicts.append({'id': worker.id,
-                                                         'userId': worker.user_id,
-                                                         'rate': worker.rate,
-                                                         'advance': worker.advance,
-                                                         'role_id': worker.role_id,
-                                                         'roleName': worker.role.name,
-                                                         'roleColor': worker.role.color,
-                                                         'salary': 0,
-                                                         'work_time': 0,
-                                                         'avatar': avatar,
-                                                         'name': worker.user.name,
-                                                         'project_id': worker.project_id,
-                                                         })
+                roles_output_list_of_dicts = get_pretty_view_roles_by_project(project=project)
 
-                roles_output_list_of_dicts = []
-                for role in roles:
-                    if role.percentage is not None:
-                        roles_output_list_of_dicts.append({
-                            'id': role.id,
-                            'name': role.name,
-                            'description': role.description,
-                            'color': role.color,
-                            'percentage': role.percentage,
-                            'type': role.type
-                        })
-                    else:
-                        roles_output_list_of_dicts.append({
-                            'id': role.id,
-                            'name': role.name,
-                            'description': role.description,
-                            'color': role.color,
-                            'amount': role.amount,
-                            'type': role.type
-                        })
-
-                output_data = {
-                    'id': project.id,
-                    'name': project.name,
-                    'workers': workers_output_list_of_dicts,
-                    'roles': roles_output_list_of_dicts,
-                    'budget': project.budget,
-                    'isArchived': project.is_archived,
-                    'workTime': project.work_time,
-                    'averageRate': project.average_rate,
-                }
+                output_data = get_full_output_project_data(project=project, workers=workers_output_list_of_dicts,
+                                                           roles=roles_output_list_of_dicts)
 
                 return JsonResponse(output_data, status=201)
 

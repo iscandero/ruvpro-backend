@@ -1,12 +1,10 @@
 import json
 
-from django.db.models import Sum
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from main.const_data.serv_info import SERV_NAME
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
@@ -14,8 +12,9 @@ from main.services.project.selectors import get_projects_by_owner, get_project_b
 from main.services.role.project_role.selectors import get_role_by_name_and_author_and_project, \
     is_user_has_role_in_project
 from main.services.role.selectors import get_role_by_id
-from main.services.user.selectors import get_app_user_by_token
+from main.services.user.selectors import get_app_user_by_token, get_avatar_path
 from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project
+from main.services.worker.use_cases import get_worker_output_data, get_full_worker_output_data
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -73,23 +72,8 @@ class WorkerViewWithIndexInEnd(View):
                     worker.rate = rate
                     worker.save(update_fields=['rate'])
 
-                time_emp_on_prj = TimeEntry.objects.filter(employee=worker).aggregate(Sum('work_time')),
+                output_data = get_worker_output_data(worker)
 
-                work_time = 0 if time_emp_on_prj[0]['work_time__sum'] is None else time_emp_on_prj[0]['work_time__sum']
-
-                output_data = {
-                    'id': worker.id,
-                    'userId': worker.user.id,
-                    'rate': worker.rate,
-                    'advance': worker.advance,
-                    'role_id': worker.role.id,
-                    'salary': worker.salary,
-                    'work_time': work_time,
-                    'name': worker.user.name,
-                    'project_id': worker.project.id,
-                    'roleName': worker.role.name,
-                    'roleColor': worker.role.color,
-                }
                 return JsonResponse(output_data, status=200)
 
             else:
@@ -133,21 +117,8 @@ class AddWorkerView(View):
                     else:
                         employee = ProjectEmployee.objects.create(**data_to_create)
 
-                    avatar = None if not employee.user.avatar else SERV_NAME + str(employee.user.avatar.url)
-                    output_data = {
-                        'id': employee.id,
-                        'userId': employee.user.id,
-                        'rate': employee.rate,
-                        'advance': employee.advance,
-                        'role_id': employee.role.id,
-                        'salary': employee.salary,
-                        'work_time': 0,
-                        'avatar': avatar,
-                        'name': employee.user.name,
-                        'project_id': employee.project.id,
-                        'roleName': employee.role.name,
-                        'roleColor': employee.role.color,
-                    }
+                    output_data = get_full_worker_output_data(worker=employee)
+
                     return JsonResponse(output_data, status=200)
 
                 else:
@@ -215,7 +186,8 @@ class TimeEntryView(View):
                     time_entry = TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
                                                           initiator=user)
                     current_user = current_employee.user
-                    avatar = None if not current_user.avatar else SERV_NAME + str(current_user.avatar.url)
+
+                    avatar = get_avatar_path(user=current_user)
 
                     output_data = {
                         'id': time_entry.id,
