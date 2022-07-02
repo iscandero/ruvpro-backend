@@ -13,4 +13,4 @@ def is_user_has_role_in_project(user: User, role: Role, project: Project) -> boo
 
 
 def get_roles_by_project(project: Project):
-    return Role.objects.filter(project=Project)
+    return Role.objects.filter(project=project)

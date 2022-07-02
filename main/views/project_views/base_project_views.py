@@ -12,7 +12,7 @@ from main.parsers import *
 from main.services.project.selectors import get_project_by_id
 from main.services.role.project_role.selectors import get_role_by_name_and_author_and_project
 from main.services.user.selectors import get_app_user_by_token, get_app_user_by_id
-from main.services.worker.selectors import get_worker_by_id, get_workers_by_project
+from main.services.worker.selectors import get_workers_by_project
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -77,7 +77,7 @@ class ProjectView(View):
 
                 workers_output_list_of_dicts = []
                 for worker in employees:
-                    current_user = get_worker_by_id(worker_id=worker.id).user
+                    current_user = worker.user
                     avatar = None if not current_user.avatar else SERV_NAME + str(current_user.avatar.url)
                     workers_output_list_of_dicts.append({'id': worker.id,
                                                          'userId': worker.user_id,

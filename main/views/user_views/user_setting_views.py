@@ -1,6 +1,5 @@
 import json
 
-from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -24,30 +23,25 @@ class UserSettingsView(View):
             if need_user.authority == 1:
                 roles = get_all_base_roles_by_author(author=need_user)
 
-                serialized_data = serialize('python', roles)
-
                 instance_output_list_of_dicts = []
-                for role in serialized_data:
-                    id = role['pk']
-                    fields_dict = role['fields']
-                    fields_dict['id'] = id
+                for role in roles:
 
-                    if fields_dict['percentage'] is None:
-                        instance_output_list_of_dicts.append({'id': id,
-                                                              'name': fields_dict['name'],
-                                                              'description': fields_dict['description'],
-                                                              'color': fields_dict['color'],
-                                                              'amount': fields_dict['amount'],
-                                                              'type': fields_dict['type']
+                    if role.percentage is None:
+                        instance_output_list_of_dicts.append({'id': role.id,
+                                                              'name': role.name,
+                                                              'description': role.description,
+                                                              'color': role.color,
+                                                              'amount': role.amount,
+                                                              'type': role.type,
                                                               })
 
-                    if fields_dict['amount'] is None:
-                        instance_output_list_of_dicts.append({'id': id,
-                                                              'name': fields_dict['name'],
-                                                              'description': fields_dict['description'],
-                                                              'color': fields_dict['color'],
-                                                              'percentage': fields_dict['percentage'],
-                                                              'type': fields_dict['type']
+                    if role.amount is None:
+                        instance_output_list_of_dicts.append({'id': role.id,
+                                                              'name': role.name,
+                                                              'description': role.description,
+                                                              'color': role.color,
+                                                              'percentage': role.percentage,
+                                                              'type': role.type,
                                                               })
                 roles_dict = {
                     "roles": instance_output_list_of_dicts
@@ -91,14 +85,14 @@ class UserSettingsView(View):
                         'author': author,
                     }
                     new_role = Role.objects.create(**data_to_create)
-                    data = {
+                    output_data = {
                         'id': new_role.id,
                         'name': new_role.name,
                         'description': new_role.description,
                         'color': new_role.color,
                         'percentage': new_role.percentage,
                     }
-                    return JsonResponse(data, status=200)
+                    return JsonResponse(output_data, status=200)
 
                 elif amount is not None and percentage is None:
                     data_to_create = {
@@ -110,14 +104,15 @@ class UserSettingsView(View):
                         'author': author,
                     }
                     new_role = Role.objects.create(**data_to_create)
-                    data = {
+                    output_data = {
                         'id': new_role.id,
                         'name': new_role.name,
                         'description': new_role.description,
                         'color': new_role.color,
                         'amount': new_role.amount,
+                        'type': new_role.type
                     }
-                    return JsonResponse(data, status=200)
+                    return JsonResponse(output_data, status=200)
 
             else:
                 return JsonResponse(USER_NOT_A_SUB_DATA, status=404)
@@ -175,7 +170,7 @@ class UserViewForIndexInEnd(View):
                         role_instance.save(update_fields=['amount', 'percentage'])
 
                     if role_instance.percentage is not None:
-                        data = {
+                        output_data = {
                             'id': role_instance.id,
                             'name': role_instance.name,
                             'description': role_instance.description,
@@ -183,10 +178,10 @@ class UserViewForIndexInEnd(View):
                             'percentage': role_instance.percentage,
                             'type': role_instance.type
                         }
-                        return JsonResponse(data, status=200)
+                        return JsonResponse(output_data, status=200)
 
                     if role_instance.amount is not None:
-                        data = {
+                        output_data = {
                             'id': role_instance.id,
                             'name': role_instance.name,
                             'description': role_instance.description,
@@ -194,7 +189,7 @@ class UserViewForIndexInEnd(View):
                             'amount': role_instance.amount,
                             'type': role_instance.type
                         }
-                        return JsonResponse(data, status=200)
+                        return JsonResponse(output_data, status=200)
 
                 else:
                     return JsonResponse(NO_PERMISSION_DATA, status=404)

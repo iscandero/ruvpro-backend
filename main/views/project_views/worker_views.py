@@ -56,7 +56,7 @@ class WorkerViewWithIndexInEnd(View):
             if project.owner == user:
                 post_body = json.loads(request.body)
 
-                role_id = post_body.get('role')
+                role_id = post_body.get('role_id')
                 rate = post_body.get('rate')
 
                 if role_id is not None:
@@ -77,18 +77,20 @@ class WorkerViewWithIndexInEnd(View):
 
                 work_time = 0 if time_emp_on_prj[0]['work_time__sum'] is None else time_emp_on_prj[0]['work_time__sum']
 
-                data = {
+                output_data = {
                     'id': worker.id,
                     'userId': worker.user.id,
                     'rate': worker.rate,
                     'advance': worker.advance,
-                    'role': worker.role.id,
+                    'role_id': worker.role.id,
                     'salary': worker.salary,
                     'work_time': work_time,
                     'name': worker.user.name,
-                    'project': worker.project.id,
+                    'project_id': worker.project.id,
+                    'roleName': worker.role.name,
+                    'roleColor': worker.role.color,
                 }
-                return JsonResponse(data, status=200)
+                return JsonResponse(output_data, status=200)
 
             else:
                 return JsonResponse(NO_PERMISSION_DATA, status=404)
@@ -114,7 +116,7 @@ class AddWorkerView(View):
                     need_user = AppUser.objects.get(id=user_id)
                     rate = post_body.get('rate')
                     advance = post_body.get('advance')
-                    role_id = post_body.get('role')
+                    role_id = post_body.get('role_id')
                     need_role = get_role_by_id(role_id=role_id)
 
                     data_to_create = {
@@ -132,19 +134,21 @@ class AddWorkerView(View):
                         employee = ProjectEmployee.objects.create(**data_to_create)
 
                     avatar = None if not employee.user.avatar else SERV_NAME + str(employee.user.avatar.url)
-                    response_data = {
+                    output_data = {
                         'id': employee.id,
                         'userId': employee.user.id,
                         'rate': employee.rate,
                         'advance': employee.advance,
-                        'role': employee.role.id,
+                        'role_id': employee.role.id,
                         'salary': employee.salary,
                         'work_time': 0,
                         'avatar': avatar,
                         'name': employee.user.name,
-                        'project': employee.project.id,
+                        'project_id': employee.project.id,
+                        'roleName': employee.role.name,
+                        'roleColor': employee.role.color,
                     }
-                    return JsonResponse(response_data, status=200)
+                    return JsonResponse(output_data, status=200)
 
                 else:
                     return JsonResponse(NO_PERMISSION_DATA, status=404)
@@ -213,20 +217,20 @@ class TimeEntryView(View):
                     current_user = current_employee.user
                     avatar = None if not current_user.avatar else SERV_NAME + str(current_user.avatar.url)
 
-                    data = {
+                    output_data = {
                         'id': time_entry.id,
                         'userId': current_user.name,
                         'rate': current_employee.rate,
                         'advance': current_employee.advance,
-                        'role': current_employee.role.id,
+                        'role_id': current_employee.role.id,
                         'salary': current_employee.salary,
                         'work_time': time_entry.work_time,
                         'avatar': avatar,
                         'name': current_user.name,
-                        'project': current_employee.project.id
+                        'project_id': current_employee.project.id
                     }
 
-                    return JsonResponse(data, status=200)
+                    return JsonResponse(output_data, status=200)
 
                 else:
 
