@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from main.models import *
 from main.parsers import *
+from main.services.user.selectors import get_app_user_by_email
 
 BASE_URL = 'https://api.dev.therun.app'
 
@@ -35,14 +36,24 @@ class UserRegistry(View):
         json_resp = response.json()
 
         if response.status_code == 200:
-            data_to_create_user = {
-                'token_data': json_resp.get('token'),
-                'name': name,
-                'email': email,
-                'phone': phone,
-            }
+            token = json_resp.get('token')
+            user_to_create_or_update = get_app_user_by_email(email=email)
+            if not user_to_create_or_update:
+                data_to_create_user = {
+                    'token_data': token,
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'is_register': True,
+                }
+                AppUser.objects.create(**data_to_create_user)
 
-            AppUser.objects.create(**data_to_create_user)
+            else:
+                user_to_create_or_update.name = name
+                user_to_create_or_update.phone = phone
+                user_to_create_or_update.token_data = token
+                user_to_create_or_update.is_register = True
+                user_to_create_or_update.save(update_fields=['name', 'phone', 'phone'])
 
         return JsonResponse(json_resp, status=response.status_code)
 

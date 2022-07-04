@@ -15,15 +15,17 @@ class AppUser(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     token_data = models.TextField(verbose_name="token", unique=False, null=True, blank=True)
-    name = models.CharField(verbose_name="Имя пользователя", null=False, unique=False, blank=False, max_length=255)
+    name = models.CharField(verbose_name="Имя пользователя", null=False, unique=False, blank=False, max_length=255,
+                            default='Имя')
     email = models.EmailField(verbose_name="email пользователя", unique=True, null=False, blank=False,
                               default='admin@admin.com')
-    phone = models.CharField(verbose_name="Телефон пользователя", unique=True, null=False, blank=False, max_length=255,
-                             default='+777')
+    phone = models.CharField(verbose_name="Телефон пользователя", null=True, blank=False, max_length=255)
     avatar = models.ImageField(verbose_name="Аватар пользователя", upload_to=user_avatar_path, null=True,
                                blank=True)
     bio = models.TextField(verbose_name="Биография пользователя", null=True, blank=True)
     authority = models.IntegerField(verbose_name="Полномочия пользователя", null=False, blank=False, unique=False)
+    is_register = models.BooleanField(verbose_name='Флаг зарегистрированого пользователя', null=False, blank=False,
+                                      default=True)
 
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"
@@ -249,13 +251,15 @@ class Team(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     owner = models.OneToOneField(to=AppUser, verbose_name="ID Создателя", null=False, blank=False, related_name='owner',
-                                 on_delete=models.PROTECT)
+                                 on_delete=models.CASCADE)
     participants = models.ManyToManyField(to=AppUser, verbose_name="Участники команды", null=True, blank=True,
                                           related_name='participants')
 
     def __str__(self):
         return f"Команда {self.id}"
 
+
+1
 # class UsersTeam(models.Model):
 #     class Meta:
 #         verbose_name = "Связь команды с участником"

@@ -11,7 +11,7 @@ def get_app_user_by_token(token: str):
 
 
 def is_exist_user_phone(phone: str):
-    return True if AppUser.objects.filter(phone=phone) else False
+    return True if AppUser.objects.filter(phone=phone).first() else False
 
 
 def get_app_user_by_id(id: int):
@@ -24,3 +24,7 @@ def get_app_user_by_worker(worker: ProjectEmployee):
 
 def get_avatar_path(user: AppUser):
     return None if not user.avatar else SERV_NAME + str(user.avatar.url)
+
+
+def get_app_user_by_email(email: str):
+    return AppUser.objects.filter(email=email).first()

@@ -17,3 +17,12 @@ def get_app_user_output_data_with_social_list(user: AppUser, social_list: list) 
     }
 
     return data
+
+
+def get_short_user_output_data(user: AppUser):
+    output_data = {
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+    }
+    return output_data

@@ -14,3 +14,4 @@ PROJECT_NOT_FOUND_DATA = {'message': 'Проект не найден'}
 EMPLOYEE_IS_EXIST = {'message': 'Пользователь с такой ролью уже существует в данном проекте'}
 NO_FILE_DATA = {'message': 'Не выбрано ни одно фото'}
 SUCCESS_DATA = {'message': 'Успешно'}
+USER_NOT_EXIST_IN_TEAM_DATA = {'message': 'Пользователь не найден в команде'}
