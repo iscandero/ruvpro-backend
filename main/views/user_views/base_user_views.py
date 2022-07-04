@@ -1,6 +1,5 @@
 import json
 
-from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -9,8 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
-from main.services.social.selectors import get_socials_by_user
-from main.services.user.selectors import get_app_user_by_token, is_exist_user_phone, get_avatar_path
+from main.services.social.use_cases import get_social_output_list_by_user
+from main.services.user.selectors import get_app_user_by_token, is_exist_user_phone
+from main.services.user.use_cases import get_app_user_output_data_with_social_list
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -77,32 +77,9 @@ class UserView(View):
 
             need_user.save(update_fields=fields_to_update)
 
-            socials_user = Social.objects.filter(user=need_user)
+            data = get_app_user_output_data_with_social_list(user=need_user,
+                                                             social_list=get_social_output_list_by_user(user=need_user))
 
-            serialized_data = serialize('python', socials_user)
-
-            instance_output_list_of_dicts = []
-            for social_network in serialized_data:
-                fields_dict = social_network['fields']
-
-                instance_output_list_of_dicts.append({
-                    'name': SocialNetwork.objects.get(id=fields_dict['social_network']).name,
-                    'url': fields_dict['url']
-
-                })
-
-            avatar = get_avatar_path(user=need_user)
-
-            data = {
-                'id': need_user.id,
-                'name': need_user.name,
-                'email': need_user.email,
-                'phone': need_user.phone,
-                'avatar': avatar,
-                'bio': need_user.bio,
-                'social': instance_output_list_of_dicts,
-                'authority': need_user.authority
-            }
             return JsonResponse(data, status=200)
 
         else:
@@ -124,31 +101,9 @@ class UserView(View):
         need_user = get_app_user_by_token(token=token)
 
         if need_user:
-            avatar = get_avatar_path(user=need_user)
-            socials_user = get_socials_by_user(user=need_user)
 
-            serialized_data = serialize('python', socials_user)
-
-            instance_output_list_of_dicts = []
-            for social_user in serialized_data:
-                fields_dict = social_user['fields']
-
-                instance_output_list_of_dicts.append({
-                    'name': SocialNetwork.objects.get(id=fields_dict['social_network']).name,
-                    'url': fields_dict['url']
-
-                })
-
-            data = {
-                'id': need_user.id,
-                'name': need_user.name,
-                'email': need_user.email,
-                'phone': need_user.phone,
-                'avatar': avatar,
-                'bio': need_user.bio,
-                'social': instance_output_list_of_dicts,
-                'authority': need_user.authority,
-            }
+            data = get_app_user_output_data_with_social_list(user=need_user,
+                                                             social_list=get_social_output_list_by_user(user=need_user))
 
             return JsonResponse(data, status=200)
 

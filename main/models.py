@@ -110,7 +110,7 @@ class ProjectEmployee(models.Model):
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
-    rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=False, blank=False)
+    rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=True, blank=True, default=0)
     role = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
@@ -159,12 +159,6 @@ class HistoryAdvance(models.Model):
     advance = models.FloatField(verbose_name="Размер аванса", null=False, blank=False, unique=False)
     employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
     date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
-
-    @receiver(post_save, sender=ProjectEmployee)
-    def write_advance_to_history_model(sender, instance, created, update_fields, **kwargs):
-        if created or update_fields == {'advance'}:
-            if instance.advance is not None:
-                HistoryAdvance.objects.create(advance=instance.advance, employee=instance)
 
     def __str__(self):
         return f"Аванс {self.id} - работник {self.employee.id}"
@@ -254,21 +248,22 @@ class Team(models.Model):
         verbose_name_plural = "Команды"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    owner = models.ForeignKey(to=AppUser, verbose_name="ID Создателя", null=False, blank=False,
-                              on_delete=models.PROTECT)
+    owner = models.OneToOneField(to=AppUser, verbose_name="ID Создателя", null=False, blank=False, related_name='owner',
+                                 on_delete=models.PROTECT)
+    participants = models.ManyToManyField(to=AppUser, verbose_name="Участники команды", null=True, blank=True,
+                                          related_name='participants')
 
     def __str__(self):
         return f"Команда {self.id}"
 
-
-class UsersTeam(models.Model):
-    class Meta:
-        verbose_name = "Связь команды с участником"
-        verbose_name_plural = "Связи команды с участниками"
-
-    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    team = models.ForeignKey(to=Team, verbose_name="ID команды", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Команда {self.team.id} - Пользователь {self.user.id}"
+# class UsersTeam(models.Model):
+#     class Meta:
+#         verbose_name = "Связь команды с участником"
+#         verbose_name_plural = "Связи команды с участниками"
+#
+#     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+#     user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
+#     team = models.ForeignKey(to=Team, verbose_name="ID команды", on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return f"Команда {self.team.id} - Пользователь {self.user.id}"

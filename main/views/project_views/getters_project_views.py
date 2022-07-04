@@ -26,7 +26,7 @@ class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
 
         if user:
             instance_output_list_of_dicts = get_short_output_projects_by_owner(
-                owner=user) if flag_short == 'True' else get_long_output_projects_by_owner(owner=user)
+                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner(owner=user)
 
             page_number = int(request.headers['X-Pagination-Current-Page'])
             count_in_page = int(request.headers['X-Pagination-Per-Page'])
@@ -48,7 +48,7 @@ class GetProjectsView(View):
         if user:
 
             instance_output_list_of_dicts = get_short_output_projects_by_owner(
-                owner=user) if flag_short == 'True' else get_long_output_projects_by_owner(owner=user)
+                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner(owner=user)
 
             output_data = {
                 "projects": instance_output_list_of_dicts

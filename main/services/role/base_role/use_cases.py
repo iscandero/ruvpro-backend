@@ -1,7 +1,7 @@
+from main.models import AppUser
 from main.services.role.base_role.interactors import *
 from main.services.role.base_role.selectors import get_all_base_roles_by_author
 
-from main.models import AppUser
 
 def create_base_roles_for_sub_user(roles_author: AppUser) -> None:
     """
@@ -26,3 +26,29 @@ def delete_base_roles_for_unsub_user(roles_author: AppUser) -> None:
 
     if need_base_roles is not None:
         need_base_roles.delete()
+
+
+def get_pretty_view_base_roles_by_user(user: AppUser) -> list:
+    roles = get_all_base_roles_by_author(author=user)
+
+    roles_output_list_of_dicts = []
+    for role in roles:
+        if role.percentage is not None:
+            roles_output_list_of_dicts.append({
+                'id': role.id,
+                'name': role.name,
+                'description': role.description,
+                'color': role.color,
+                'percentage': role.percentage,
+                'type': role.type
+            })
+        else:
+            roles_output_list_of_dicts.append({
+                'id': role.id,
+                'name': role.name,
+                'description': role.description,
+                'color': role.color,
+                'amount': role.amount,
+                'type': role.type
+            })
+    return roles_output_list_of_dicts

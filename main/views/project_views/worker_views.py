@@ -98,14 +98,12 @@ class AddWorkerView(View):
 
                     user_id = post_body.get('userId')
                     need_user = AppUser.objects.get(id=user_id)
-                    rate = post_body.get('rate')
                     advance = post_body.get('advance')
                     role_id = post_body.get('role_id')
                     need_role = get_role_by_id(role_id=role_id)
 
                     data_to_create = {
                         'user': need_user,
-                        'rate': rate,
                         'project': project,
                         'advance': advance,
                         'role': need_role

@@ -6,5 +6,4 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
-        from .signals import time_entry_signals
-        from .signals import role_signals
+        pass

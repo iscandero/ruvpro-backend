@@ -21,7 +21,8 @@ def get_short_output_projects_by_owner(owner: AppUser) -> list:
     instance_output_list_of_dicts = []
     for project in projects:
         instance_output_list_of_dicts.append({'id': project.id,
-                                              'name': project.name
+                                              'name': project.name,
+                                              'isArchived': project.is_archived,
                                               })
     return instance_output_list_of_dicts
 
@@ -33,7 +34,7 @@ def get_long_output_projects_by_owner(owner: AppUser) -> list:
         instance_output_list_of_dicts.append({'id': project.id,
                                               'name': project.name,
                                               'budget': project.budget,
-                                              'isArchived': project.id,
+                                              'isArchived': project.is_archived,
                                               'workTime': project.work_time,
                                               'averageRate': project.average_rate
                                               })

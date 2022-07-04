@@ -8,8 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
-from main.services.role.base_role.selectors import get_all_base_roles_by_author
+from main.services.role.base_role.use_cases import get_pretty_view_base_roles_by_user
 from main.services.role.selectors import get_role_by_id
+from main.services.role.use_cases import get_role_output_data
 from main.services.user.selectors import get_app_user_by_token
 
 
@@ -21,33 +22,12 @@ class UserSettingsView(View):
             need_user = AppUser.objects.get(token_data=token)
 
             if need_user.authority == 1:
-                roles = get_all_base_roles_by_author(author=need_user)
 
-                instance_output_list_of_dicts = []
-                for role in roles:
+                instance_output_list_of_dicts = get_pretty_view_base_roles_by_user(user=need_user)
 
-                    if role.percentage is None:
-                        instance_output_list_of_dicts.append({'id': role.id,
-                                                              'name': role.name,
-                                                              'description': role.description,
-                                                              'color': role.color,
-                                                              'amount': role.amount,
-                                                              'type': role.type,
-                                                              })
-
-                    if role.amount is None:
-                        instance_output_list_of_dicts.append({'id': role.id,
-                                                              'name': role.name,
-                                                              'description': role.description,
-                                                              'color': role.color,
-                                                              'percentage': role.percentage,
-                                                              'type': role.type,
-                                                              })
-                roles_dict = {
+                output_data = {
                     "roles": instance_output_list_of_dicts
                 }
-
-                output_data = roles_dict
 
                 return JsonResponse(output_data, status=200)
             else:
@@ -138,21 +118,18 @@ class UserViewForIndexInEnd(View):
                     percentage = patch_body.get('percentage')
                     amount = patch_body.get('amount')
 
+                    update_fields = []
                     if name is not None:
-                        if role_instance.is_base:
-                            return JsonResponse(FORBIDDEN_CHANGE_BASE_ROLE_NAME, status=404)
-
-                        else:
-                            role_instance.name = name
-                            role_instance.save(update_fields=['name'])
+                        role_instance.name = name
+                        update_fields.append('name')
 
                     if description is not None:
                         role_instance.description = description
-                        role_instance.save(update_fields=['description'])
+                        update_fields.append('description')
 
                     if color is not None:
                         role_instance.color = color
-                        role_instance.save(update_fields=['color'])
+                        update_fields.append('color')
 
                     if percentage is not None and amount is not None:
                         return JsonResponse(DUPLICATION_AMOUNT_PERCENTAGE_DATA, status=404)
@@ -161,35 +138,21 @@ class UserViewForIndexInEnd(View):
                         if role_instance.amount is not None:
                             role_instance.amount = None
                         role_instance.percentage = percentage
-                        role_instance.save(update_fields=['amount', 'percentage'])
+                        update_fields.append('amount')
+                        update_fields.append('percentage')
 
                     elif amount is not None and percentage is None:
                         if role_instance.percentage is not None:
                             role_instance.percentage = None
                         role_instance.amount = amount
-                        role_instance.save(update_fields=['amount', 'percentage'])
+                        update_fields.append('amount')
+                        update_fields.append('percentage')
 
-                    if role_instance.percentage is not None:
-                        output_data = {
-                            'id': role_instance.id,
-                            'name': role_instance.name,
-                            'description': role_instance.description,
-                            'color': role_instance.color,
-                            'percentage': role_instance.percentage,
-                            'type': role_instance.type
-                        }
-                        return JsonResponse(output_data, status=200)
+                    role_instance.save(update_fields=update_fields)
 
-                    if role_instance.amount is not None:
-                        output_data = {
-                            'id': role_instance.id,
-                            'name': role_instance.name,
-                            'description': role_instance.description,
-                            'color': role_instance.color,
-                            'amount': role_instance.amount,
-                            'type': role_instance.type
-                        }
-                        return JsonResponse(output_data, status=200)
+                    output_data = get_role_output_data(role=role_instance)
+
+                    return JsonResponse(output_data, status=200)
 
                 else:
                     return JsonResponse(NO_PERMISSION_DATA, status=404)
