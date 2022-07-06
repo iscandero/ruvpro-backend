@@ -12,8 +12,6 @@ admin.site.register(Team)
 
 admin.site.register(AppUser)
 
-# admin.site.register(UsersTeam)
-
 admin.site.register(TimeEntry)
 
 admin.site.register(Social)

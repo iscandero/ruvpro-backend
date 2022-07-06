@@ -37,10 +37,13 @@ class UserRegistry(View):
 
         if response.status_code == 200:
             token = json_resp.get('token')
+            refresh_token = json_resp.get('refreshToken')
             user_to_create_or_update = get_app_user_by_email(email=email)
+
             if not user_to_create_or_update:
                 data_to_create_user = {
                     'token_data': token,
+                    'refresh_token_data': refresh_token,
                     'name': name,
                     'email': email,
                     'phone': phone,
@@ -52,8 +55,10 @@ class UserRegistry(View):
                 user_to_create_or_update.name = name
                 user_to_create_or_update.phone = phone
                 user_to_create_or_update.token_data = token
+                user_to_create_or_update.refresh_token_data = refresh_token
+
                 user_to_create_or_update.is_register = True
-                user_to_create_or_update.save(update_fields=['name', 'phone', 'phone'])
+                user_to_create_or_update.save(update_fields=['name', 'phone', 'token_data', 'refresh_token_data'])
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -70,10 +75,14 @@ class UserLogin(View):
         }
         response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
         json_resp = response.json()
-        token = json_resp.get('token')
-        user = AppUser.objects.get(phone=phone)
-        user.token_data = token
-        user.save(update_fields=['token_data'])
+
+        if response.status_code == 200:
+            token = json_resp.get('token')
+            refresh_token = json_resp.get('refreshToken')
+            user = AppUser.objects.get(phone=phone)
+            user.token_data = token
+            user.refresh_token_data = refresh_token
+            user.save(update_fields=['token_data', 'refresh_token_data'])
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -103,19 +112,21 @@ class UserRenewToken(View):
     def post(self, request):
         post_body = json.loads(request.body)
 
-        refreshToken = post_body.get('refreshToken')
+        refresh_token = post_body.get('refreshToken')
 
         data_to_api = {
-            'refreshToken': refreshToken,
+            'refreshToken': refresh_token,
         }
 
-        user = AppUser.objects.get(token_data=refreshToken)
+        user = AppUser.objects.get(refresh_token_data=refresh_token)
 
         response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api)
         json_resp = response.json()
 
         if response.status_code == 200:
             user.token_data = json_resp.get('token')
+            user.refresh_token_data = json_resp.get('refreshToken')
+            user.save(update_fields=['token_data', 'refresh_token_data'])
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -148,7 +159,8 @@ class LogOutView(View):
         if AppUser.objects.filter(token_data=token):
             need_user = AppUser.objects.get(token_data=token)
             need_user.token_data = None
-            need_user.save(update_fields=['token_data'])
+            need_user.refresh_token_data = None
+            need_user.save(update_fields=['token_data', 'refresh_token_data'])
 
         headers = {
             "Authorization": "Bearer " + str(token)

@@ -15,6 +15,7 @@ class AppUser(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     token_data = models.TextField(verbose_name="token", unique=False, null=True, blank=True)
+    refresh_token_data = models.TextField(verbose_name="refresh token", unique=False, null=True, blank=True)
     name = models.CharField(verbose_name="Имя пользователя", null=False, unique=False, blank=False, max_length=255,
                             default='Имя')
     email = models.EmailField(verbose_name="email пользователя", unique=True, null=False, blank=False,
@@ -73,6 +74,30 @@ class Project(models.Model):
 
     average_rate = models.FloatField(verbose_name="Средняя ставка", unique=False, null=False, blank=False, default=0)
 
+    masters_work_time = models.FloatField(verbose_name="Суммарное рабочее время всех мастеров проекта",
+                                          unique=False, null=True, blank=True,
+                                          default=0)
+
+    mentors_work_time = models.FloatField(verbose_name="Суммарное рабочее время всех менторов проекта", unique=False,
+                                          null=True,
+                                          blank=True,
+                                          default=0)
+
+    assists_work_time = models.FloatField(verbose_name="Суммарное рабочее время всех подсобных проекта", unique=False,
+                                          null=True,
+                                          blank=True,
+                                          default=0)
+
+    interns_work_time = models.FloatField(verbose_name="Суммарное рабочее время всех интернов проекта", unique=False,
+                                          null=True,
+                                          blank=True,
+                                          default=0)
+
+    pupils_work_time = models.FloatField(verbose_name="Суммарное рабочее время всех учеников проекта", unique=False,
+                                         null=True,
+                                         blank=True,
+                                         default=0)
+
     def __str__(self):
         return f"Проект {self.id}: {self.name}"
 
@@ -90,13 +115,13 @@ class Role(models.Model):
     amount = models.FloatField(verbose_name="Размер платы", unique=False, null=True, blank=True)
     author = models.ForeignKey(to=AppUser, verbose_name="ID Создателя роли", on_delete=models.CASCADE)
 
-    # Флаг базовой роли, если - True, то роль создалась
+    # Флаг базовой роли, если - True, то роль не проектная, а создалась автоматически для платного пользователя
     is_base = models.BooleanField(verbose_name='Флаг базовой роли', null=False, blank=False, default=False)
 
     # Если тип = 1, то данную роль нельзя присвоить работнику, эта роль относится к дополнительным распределениям
     type = models.IntegerField(verbose_name='Тип роли', null=False, blank=True, default=0)
 
-    # Если тип = 1, то не null.
+    # не null, если роль - проектная
     project = models.ForeignKey(to=Project, verbose_name='Проект, которому принадлежит роль', null=True, blank=True,
                                 on_delete=models.CASCADE)
 
@@ -117,20 +142,11 @@ class ProjectEmployee(models.Model):
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
                                default=0)
-    work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=False,
+    work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=True,
                                   default=0)
-
-    @staticmethod
-    def calculate_project_average_rate(sender, instance, created, update_fields, **kwargs):
-        if created or update_fields == {'rate'}:
-            avg_rate = sender.objects.filter(project=instance.project).aggregate(avg_rate=Avg('rate'))
-            instance.project.average_rate = avg_rate['avg_rate']
 
     def __str__(self):
         return f"Работник {self.id}: User {self.user}"
-
-
-post_save.connect(ProjectEmployee.calculate_project_average_rate, sender=ProjectEmployee)
 
 
 class HistoryRate(models.Model):
@@ -257,17 +273,3 @@ class Team(models.Model):
 
     def __str__(self):
         return f"Команда {self.id}"
-
-
-1
-# class UsersTeam(models.Model):
-#     class Meta:
-#         verbose_name = "Связь команды с участником"
-#         verbose_name_plural = "Связи команды с участниками"
-#
-#     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-#     user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-#     team = models.ForeignKey(to=Team, verbose_name="ID команды", on_delete=models.CASCADE)
-#
-#     def __str__(self):
-#         return f"Команда {self.team.id} - Пользователь {self.user.id}"

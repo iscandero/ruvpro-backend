@@ -46,7 +46,7 @@ ACC_JOURNAL_ROLE = {
     'name': 'Журнал учета',
     'description': 'Описание роли',
     'color': '2a943a',
-    'percentage': 10,
+    'percentage': 3,
     'is_base': True,
     'type': 1,
     'project': None,
