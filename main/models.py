@@ -1,7 +1,4 @@
 from django.db import models
-from django.db.models import Avg
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 class AppUser(models.Model):
@@ -74,6 +71,10 @@ class Project(models.Model):
 
     average_rate = models.FloatField(verbose_name="Средняя ставка", unique=False, null=False, blank=False, default=0)
 
+    sum_salary = models.FloatField(verbose_name="Суммарная зп, всех работников", null=True, blank=True,
+                                   unique=False,
+                                   default=0)
+
     masters_work_time = models.FloatField(verbose_name="Суммарное рабочее время всех мастеров проекта",
                                           unique=False, null=True, blank=True,
                                           default=0)
@@ -137,7 +138,6 @@ class ProjectEmployee(models.Model):
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
-    rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=True, blank=True, default=0)
     role = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
@@ -149,34 +149,15 @@ class ProjectEmployee(models.Model):
         return f"Работник {self.id}: User {self.user}"
 
 
-class HistoryRate(models.Model):
-    class Meta:
-        verbose_name = "История ставок работника"
-        verbose_name_plural = "Истории ставок работников"
-
-    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    rate = models.FloatField(verbose_name="Ставка рабочего", unique=False, null=False, blank=False)
-    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
-    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
-
-    @receiver(post_save, sender=ProjectEmployee)
-    def write_rate_to_history_model(sender, instance, created, update_fields, **kwargs):
-        if created or update_fields == {'rate'}:
-            HistoryRate.objects.create(rate=instance.rate, employee=instance)
-
-    def __str__(self):
-        return f"Ставка {self.id} работника {self.employee.id}"
-
-
 class HistoryAdvance(models.Model):
     class Meta:
         verbose_name = "История авансов работника"
         verbose_name_plural = "Истории авансов работников"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    advance = models.FloatField(verbose_name="Размер аванса", null=False, blank=False, unique=False)
+    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True)
     employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
-    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
+    advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False, default=0)
 
     def __str__(self):
         return f"Аванс {self.id} - работник {self.employee.id}"
@@ -198,66 +179,35 @@ class TimeEntry(models.Model):
         return f"Рабочее время {self.id} работника {self.employee.id}"
 
 
-class EmployeeStatistics(models.Model):
+class HistoryWorker(models.Model):
     class Meta:
-        verbose_name = "Статистика работника"
-        verbose_name_plural = "Статистики работников"
+        verbose_name = "История работника"
+        verbose_name_plural = "Истории работников"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
-                                  blank=False)
-    end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
-                                blank=False)
-
-    # доход
-    income = models.FloatField(verbose_name="Доход", null=False, blank=False, unique=False, default=0)
-
-    # work_time - суммарное время, которое выдавали в TimeEntry этому пассажиру
-    work_time = models.FloatField(verbose_name="Рабочее время", unique=False, null=False, blank=False, default=0)
-
-    # Последняя ставка
-    rate = models.FloatField(verbose_name="Текущая ставка рабочего", unique=False, null=False, blank=False, default=0)
+    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+    salary = models.FloatField(verbose_name="Размер зп", null=True, blank=True, unique=False, default=0)
+    rate = models.FloatField(verbose_name="Ставка рабочего", null=True, blank=True, unique=False, default=0)
+    work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=True,
+                                  default=0)
 
     def __str__(self):
-        return f"Статистика {self.id} работника {self.employee.id}"
+        return f"История {self.id} - работник {self.employee.id}"
 
 
-class ProjectStatistics(models.Model):
+class HistoryProject(models.Model):
     class Meta:
-        verbose_name = "Статистика проекта"
-        verbose_name_plural = "Статистики проектов"
+        verbose_name = "История проекта"
+        verbose_name_plural = "Истории проектов"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True, auto_now=True)
     project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE, default=0)
-    start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
-                                  blank=False)
-    end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
-                                blank=False)
-    income = models.FloatField(verbose_name="Доход всех работников", null=False, blank=False, unique=False, default=0)
+    income = models.FloatField(verbose_name="Доход всех работников", null=True, blank=True, unique=False, default=0)
 
     def __str__(self):
-        return f"Статистика {self.id} проекта {self.project.id}"
-
-
-class AdvanceStatistics(models.Model):
-    class Meta:
-        verbose_name = "Статистика аванса"
-        verbose_name_plural = "Статистики авансов"
-
-    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    start_date = models.DateField(verbose_name="Дата с которой считать статистику", unique=False, null=False,
-                                  blank=False)
-    end_date = models.DateField(verbose_name="Дата до которой считать статистику", unique=False, null=False,
-                                blank=False)
-
-    # доход авансов
-    advance = models.FloatField(verbose_name="Сумма авансов работника", null=False, blank=False, unique=False,
-                                default=0)
-
-    def __str__(self):
-        return f"Статистика авансов {self.id} работника {self.employee.id}"
+        return f"История {self.id} проекта {self.project.id}"
 
 
 class Team(models.Model):

@@ -11,3 +11,7 @@ def get_projects_ids_by_owner(owner_project: AppUser):
 
 def get_project_by_id(project_id: int):
     return Project.objects.filter(id=project_id).first()
+
+
+def get_all_project_ids_list_by_owner_projects(owner_projects: AppUser) -> list:
+    return list(Project.objects.filter(owner=owner_projects).values_list('id', flat=True))

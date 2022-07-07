@@ -15,6 +15,7 @@ def create_base_roles_for_sub_user(roles_author: AppUser) -> None:
     add_acc_journal_role_if_needed(user=roles_author)
     add_amortization_instr_role_if_needed(user=roles_author)
     add_intern_role_if_needed(user=roles_author)
+    add_responsible_role_if_needed(user=roles_author)
 
 
 def delete_base_roles_for_unsub_user(roles_author: AppUser) -> None:

@@ -40,9 +40,9 @@ def calculate_master_or_mentor_salary(worker: ProjectEmployee):
     masters_and_mentors_times_for_pupil_share = project.masters_work_time + 1.1 * project.mentors_work_time
 
     if masters_and_mentors_times is not None and masters_and_mentors_times != 0:
-        part_1 = (average_rate + share_from_assist + share_from_intern) / masters_and_mentors_times
+        part_1 = (share_from_assist + share_from_intern) / masters_and_mentors_times
         part_2 = share_from_pupil / masters_and_mentors_times_for_pupil_share
-        salary = worker_time * (part_1 + part_2)
+        salary = worker_time * (average_rate + part_1 + part_2)
     else:
         salary = 0
 

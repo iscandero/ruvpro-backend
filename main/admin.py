@@ -18,6 +18,8 @@ admin.site.register(Social)
 
 admin.site.register(Role)
 
-admin.site.register(HistoryRate)
-
 admin.site.register(HistoryAdvance)
+
+admin.site.register(HistoryWorker)
+
+admin.site.register(HistoryProject)

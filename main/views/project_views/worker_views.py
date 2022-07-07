@@ -13,6 +13,7 @@ from main.services.role.project_role.selectors import get_role_by_name_and_autho
     is_user_has_role_in_project
 from main.services.role.selectors import get_role_by_id
 from main.services.user.selectors import get_app_user_by_token, get_avatar_path
+from main.services.work_with_date import convert_timestamp_to_date
 from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project
 from main.services.worker.use_cases import get_worker_output_data, get_full_worker_output_data
 
@@ -56,7 +57,6 @@ class WorkerViewWithIndexInEnd(View):
                 post_body = json.loads(request.body)
 
                 role_id = post_body.get('role_id')
-                rate = post_body.get('rate')
 
                 if role_id is not None:
                     role = get_role_by_id(role_id=role_id)
@@ -67,10 +67,6 @@ class WorkerViewWithIndexInEnd(View):
 
                     else:
                         return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
-
-                if rate is not None:
-                    worker.rate = rate
-                    worker.save(update_fields=['rate'])
 
                 output_data = get_worker_output_data(worker)
 
@@ -175,8 +171,9 @@ class TimeEntryView(View):
             if owner_project == user or is_user_has_role_in_project(user=user, role=role_accounting, project=project):
                 post_body = json.loads(request.body)
 
-                date = post_body.get('date')
-                work_time = post_body.get('workTime')
+                date = convert_timestamp_to_date(post_body.get('date'))
+                # перевод в часы из секунд
+                work_time = (post_body.get('workTime') / 3600)
                 worker_id = post_body.get('worker_id')
 
                 current_employee = get_worker_by_id(worker_id=worker_id)
@@ -190,7 +187,7 @@ class TimeEntryView(View):
                     output_data = {
                         'id': time_entry.id,
                         'userId': current_user.name,
-                        'rate': current_employee.rate,
+                        'rate': current_employee.project.average_rate,
                         'advance': current_employee.advance,
                         'role_id': current_employee.role.id,
                         'salary': current_employee.salary,

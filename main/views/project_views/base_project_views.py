@@ -70,7 +70,6 @@ class ProjectView(View):
                         'user': current_user,
                         'project': project,
                         'advance': worker['advance'],
-                        'rate': 0,
                         'role': role
                     }
                     ProjectEmployee.objects.create(**data_to_create_employee)

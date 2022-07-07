@@ -1,4 +1,5 @@
 from main.models import ProjectEmployee, AppUser, Role, Project
+from main.services.project.selectors import get_all_project_ids_list_by_owner_projects
 
 
 def get_worker_by_user_role_project(user: AppUser, role: Role, project: Project):
@@ -27,3 +28,15 @@ def get_workers_by_user_and_projects_ids(user: AppUser, projects_ids: list):
 
 def get_workers_by_project_and_role(project: Project, role: Role):
     return ProjectEmployee.objects.filter(project=project, role=role)
+
+
+def get_workers_by_user_ids_list_and_owner_projects(user_ids_list: list, owner_projects: AppUser) -> list:
+    """
+    Берёт все ID проектов, которые создал owner_projects
+    Возвращает всех работников этих проектов,
+    у которых id их user-ов находятся в user_ids_list
+    """
+    need_project_ids_list = get_all_project_ids_list_by_owner_projects(owner_projects=owner_projects)
+    return list(
+        ProjectEmployee.objects.filter(user_id__in=user_ids_list, project_id__in=need_project_ids_list).values_list(
+            'id', flat=True))

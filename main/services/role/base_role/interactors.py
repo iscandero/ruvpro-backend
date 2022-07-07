@@ -65,3 +65,9 @@ def add_intern_role_if_needed(user: AppUser) -> None:
     if is_user_need_role_by_name(user=user, name='Испытательный срок'):
         role_to_create = get_base_role_with_author(user=user, base_role=INTERN_ROLE)
         Role.objects.create(**role_to_create)
+
+
+def add_responsible_role_if_needed(user: AppUser) -> None:
+    if is_user_need_role_by_name(user=user, name='Ответственный за размеры и качество'):
+        role_to_create = get_base_role_with_author(user=user, base_role=RESPONSIBLE_ROLE)
+        Role.objects.create(**role_to_create)

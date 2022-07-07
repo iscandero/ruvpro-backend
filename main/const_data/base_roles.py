@@ -25,7 +25,7 @@ MENTOR_ROLE = {
 AUXILIARY_ROLE = {
     'name': 'Подсобный',
     'description': 'Описание роли',
-    'color': 'fccf04',
+    'color': 'ff9b39',
     'percentage': 80,
     'is_base': True,
     'type': 0,
@@ -65,7 +65,17 @@ AMORTIZATION_INST_ROLE = {
 INTERN_ROLE = {
     'name': 'Испытательный срок',
     'description': 'Описание роли',
-    'color': '838D0E',
+    'color': '838d0e',
+    'amount': 0,
+    'is_base': True,
+    'type': 0,
+    'project': None,
+}
+
+RESPONSIBLE_ROLE = {
+    'name': 'Ответственный за размеры и качество',
+    'description': 'Описание роли',
+    'color': 'fccf04',
     'amount': 0,
     'is_base': True,
     'type': 0,
