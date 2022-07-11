@@ -31,9 +31,8 @@ class UserSettingsView(View):
 
                 return JsonResponse(output_data, status=200)
             else:
-                output_data = {'roles': {}}
 
-                return JsonResponse(output_data, status=200)
+                return JsonResponse(USER_NOT_A_SUB_DATA, status=400)
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=401)

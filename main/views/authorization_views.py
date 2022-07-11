@@ -10,7 +10,7 @@ from main.models import *
 from main.parsers import *
 from main.services.user.selectors import get_app_user_by_email
 
-BASE_URL = 'https://api.dev.therun.app'
+BASE_URL = 'http://82.148.18.226'
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -23,6 +23,7 @@ class UserRegistry(View):
         code = post_body.get('code')
         password = post_body.get('pin')
         name = post_body.get('name')
+        username = post_body.get('username')
 
         user_data_for_api = {
             'email': email,
@@ -30,6 +31,7 @@ class UserRegistry(View):
             'code': code,
             'pin': password,
             'firstname': name,
+            'username': username
         }
 
         response = requests.post(f"{BASE_URL}/api/user/signup", json=user_data_for_api)
@@ -48,6 +50,7 @@ class UserRegistry(View):
                     'email': email,
                     'phone': phone,
                     'is_register': True,
+                    'authority': 0,
                 }
                 AppUser.objects.create(**data_to_create_user)
 
@@ -56,6 +59,7 @@ class UserRegistry(View):
                 user_to_create_or_update.phone = phone
                 user_to_create_or_update.token_data = token
                 user_to_create_or_update.refresh_token_data = refresh_token
+                user_to_create_or_update.authority = 0
 
                 user_to_create_or_update.is_register = True
                 user_to_create_or_update.save(update_fields=['name', 'phone', 'token_data', 'refresh_token_data'])
