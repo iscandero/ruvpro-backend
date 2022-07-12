@@ -9,7 +9,7 @@ from main.services.worker.selectors import get_workers_by_project, get_workers_b
 
 @receiver(post_save, sender=Role)
 def calculate_salary_if_change_role(sender, instance, update_fields, **kwargs):
-    if 'percentage' in update_fields or 'amount' in update_fields:
+    if update_fields == {'percentage'} or update_fields == {'amount'}:
         workers = get_workers_by_project_role(project_role=instance)
         if workers is not None:
             for worker in workers:
@@ -23,7 +23,7 @@ def calculate_salary_if_change_role(sender, instance, update_fields, **kwargs):
 
 @receiver(post_save, sender=Project)
 def calculate_salary_if_change_project(sender, instance, update_fields, **kwargs):
-    if 'budget' in update_fields or 'work_time' in update_fields:
+    if update_fields == {'budget'} or update_fields == {'work_time'}:
         workers = get_workers_by_project(project=instance)
         if workers is not None:
             for worker in workers:

@@ -1,5 +1,6 @@
 from main.models import Project, AppUser
-from main.services.project.selectors import get_projects_by_owner, get_projects_ids_by_owner
+from main.services.project.selectors import get_projects_by_owner, get_projects_ids_by_owner, \
+    get_projects_ids_by_owner_or_member
 from main.services.role.project_role.selectors import get_role_by_project_and_name
 from main.services.time_entry.interactors import calculate_work_time_all_workers_with_role
 from main.services.worker.selectors import get_workers_by_user_and_projects_ids
@@ -50,6 +51,28 @@ def get_output_projects_by_member_and_owner(member: AppUser, owner: AppUser) -> 
     c владельцем owner
     """
     projects_ids = get_projects_ids_by_owner(owner_project=owner)
+    need_workers = get_workers_by_user_and_projects_ids(user=member, projects_ids=projects_ids)
+
+    instance_output_data = []
+    if need_workers:
+        for need_worker in need_workers:
+            instance_output_data.append(
+                {
+                    'id': need_worker.project.id,
+                    'name': need_worker.project.name,
+                    'role_id': need_worker.role.id,
+                    'roleName': need_worker.role.name,
+                    'roleColor': need_worker.role.color,
+                }
+            )
+    return instance_output_data
+
+
+def get_output_projects_by_member_and_willing(member: AppUser, willing: AppUser) -> list:
+    """
+    Возвращает информацию о участнике member для желающего willing
+    """
+    projects_ids = get_projects_ids_by_owner_or_member(owner_or_member_project=willing)
     need_workers = get_workers_by_user_and_projects_ids(user=member, projects_ids=projects_ids)
 
     instance_output_data = []
