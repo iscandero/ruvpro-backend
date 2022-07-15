@@ -23,7 +23,7 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
                                              'name': worker.user.name,
                                              'project_id': worker.project_id,
                                              })
-        return workers_output_list_of_dicts
+    return workers_output_list_of_dicts
 
 
 def get_worker_output_data(worker: ProjectEmployee):

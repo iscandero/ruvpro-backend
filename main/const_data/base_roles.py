@@ -76,8 +76,8 @@ RESPONSIBLE_ROLE = {
     'name': 'Ответственный за размеры и качество',
     'description': 'Описание роли',
     'color': 'fccf04',
-    'amount': 0,
+    'percentage': 10,
     'is_base': True,
-    'type': 0,
+    'type': 1,
     'project': None,
 }

@@ -36,7 +36,7 @@ def calculate_salary_if_change_project(sender, instance, update_fields, **kwargs
 
 @receiver(post_save, sender=ProjectEmployee)
 def calculate_salary_if_change_project_employee(sender, instance, created, update_fields, **kwargs):
-    if created or 'role' in update_fields:
+    if created or update_fields == {'role'}:
         project = instance.project
         workers = get_workers_by_project(project=project)
         if workers is not None:

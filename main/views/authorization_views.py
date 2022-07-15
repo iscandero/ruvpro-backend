@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from main.models import *
 from main.parsers import *
-from main.services.user.selectors import get_app_user_by_email
+from main.services.user.selectors import get_no_register_app_user_by_email
 
 BASE_URL = 'http://82.148.18.226'
 
@@ -23,7 +23,6 @@ class UserRegistry(View):
         code = post_body.get('code')
         password = post_body.get('pin')
         name = post_body.get('name')
-        username = post_body.get('username')
 
         user_data_for_api = {
             'email': email,
@@ -31,7 +30,7 @@ class UserRegistry(View):
             'code': code,
             'pin': password,
             'firstname': name,
-            'username': username
+            'username': phone
         }
 
         response = requests.post(f"{BASE_URL}/api/user/signup", json=user_data_for_api)
@@ -40,7 +39,7 @@ class UserRegistry(View):
         if response.status_code == 200:
             token = json_resp.get('token')
             refresh_token = json_resp.get('refreshToken')
-            user_to_create_or_update = get_app_user_by_email(email=email)
+            user_to_create_or_update = get_no_register_app_user_by_email(email=email)
 
             if not user_to_create_or_update:
                 data_to_create_user = {
