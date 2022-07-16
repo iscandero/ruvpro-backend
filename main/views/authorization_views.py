@@ -117,6 +117,7 @@ class UserSendCode(View):
 class UserRenewToken(View):
     def post(self, request):
         post_body = json.loads(request.body)
+        token = get_token(request)
 
         refresh_token = post_body.get('refreshToken')
 
@@ -124,7 +125,11 @@ class UserRenewToken(View):
             'refreshToken': refresh_token,
         }
 
-        response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api)
+        headers = {
+            "Authorization": "Bearer " + str(token)
+        }
+
+        response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api, headers=headers)
         json_resp = response.json()
 
         if response.status_code == 200:
@@ -132,7 +137,7 @@ class UserRenewToken(View):
 
             auth_data_to_change.token_data = json_resp.get('token')
             auth_data_to_change.refresh_token_data = json_resp.get('refreshToken')
-            auth_data_to_change.valid_until = json_resp.get('validUntil')
+            auth_data_to_change.valid_until = convert_timestamp_to_date(json_resp.get('validUntil'))
 
             auth_data_to_change.save(update_fields=['token_data', 'refresh_token_data', 'valid_until'])
 
