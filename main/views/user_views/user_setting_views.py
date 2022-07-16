@@ -18,8 +18,8 @@ from main.services.user.selectors import get_app_user_by_token
 class UserSettingsView(View):
     def get(self, request):
         token = get_token(request)
-        if AppUser.objects.filter(token_data=token):
-            need_user = AppUser.objects.get(token_data=token)
+        need_user = get_app_user_by_token(token=token)
+        if need_user:
 
             if need_user.authority == 1:
 
