@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from main.models import *
 from main.parsers import *
 from main.services.user.selectors import get_no_register_app_user_by_email
+from main.services.work_with_date import convert_timestamp_to_date
 
 BASE_URL = 'http://82.148.18.226'
 
@@ -39,29 +40,29 @@ class UserRegistry(View):
         if response.status_code == 200:
             token = json_resp.get('token')
             refresh_token = json_resp.get('refreshToken')
+            valid_until = json_resp.get('validUntil')
+
             user_to_create_or_update = get_no_register_app_user_by_email(email=email)
 
             if not user_to_create_or_update:
                 data_to_create_user = {
-                    'token_data': token,
-                    'refresh_token_data': refresh_token,
                     'name': name,
                     'email': email,
                     'phone': phone,
                     'is_register': True,
                     'authority': 0,
                 }
-                AppUser.objects.create(**data_to_create_user)
+                user_to_create_or_update = AppUser.objects.create(**data_to_create_user)
 
             else:
                 user_to_create_or_update.name = name
                 user_to_create_or_update.phone = phone
-                user_to_create_or_update.token_data = token
-                user_to_create_or_update.refresh_token_data = refresh_token
                 user_to_create_or_update.authority = 0
-
                 user_to_create_or_update.is_register = True
-                user_to_create_or_update.save(update_fields=['name', 'phone', 'token_data', 'refresh_token_data'])
+                user_to_create_or_update.save(update_fields=['name', 'phone'])
+
+            AuthData.objects.create(user=user_to_create_or_update, token_data=token, refresh_token_data=refresh_token,
+                                    valid_until=convert_timestamp_to_date(valid_until))
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -76,16 +77,18 @@ class UserLogin(View):
             'pin': password,
             'phone': phone
         }
+
         response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
         json_resp = response.json()
+        user = AppUser.objects.get(phone=phone)
 
         if response.status_code == 200:
             token = json_resp.get('token')
             refresh_token = json_resp.get('refreshToken')
-            user = AppUser.objects.get(phone=phone)
-            user.token_data = token
-            user.refresh_token_data = refresh_token
-            user.save(update_fields=['token_data', 'refresh_token_data'])
+            valid_until = json_resp.get('validUntil')
+
+            AuthData.objects.create(user=user, token_data=token, refresh_token_data=refresh_token,
+                                    valid_until=convert_timestamp_to_date(valid_until))
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -121,15 +124,17 @@ class UserRenewToken(View):
             'refreshToken': refresh_token,
         }
 
-        user = AppUser.objects.get(refresh_token_data=refresh_token)
-
         response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api)
         json_resp = response.json()
 
         if response.status_code == 200:
-            user.token_data = json_resp.get('token')
-            user.refresh_token_data = json_resp.get('refreshToken')
-            user.save(update_fields=['token_data', 'refresh_token_data'])
+            auth_data_to_change = AuthData.objects.get(refresh_token_data=refresh_token)
+
+            auth_data_to_change.token_data = json_resp.get('token')
+            auth_data_to_change.refresh_token_data = json_resp.get('refreshToken')
+            auth_data_to_change.valid_until = json_resp.get('validUntil')
+
+            auth_data_to_change.save(update_fields=['token_data', 'refresh_token_data', 'valid_until'])
 
         return JsonResponse(json_resp, status=response.status_code)
 
@@ -159,17 +164,15 @@ class UserCheckCode(View):
 class LogOutView(View):
     def post(self, request):
         token = get_token(request)
-        if AppUser.objects.filter(token_data=token):
-            need_user = AppUser.objects.get(token_data=token)
-            need_user.token_data = None
-            need_user.refresh_token_data = None
-            need_user.save(update_fields=['token_data', 'refresh_token_data'])
 
         headers = {
             "Authorization": "Bearer " + str(token)
         }
 
         response = requests.post(f"{BASE_URL}/api/user/logout", headers=headers)
+
+        AuthData.objects.get(token_data=token).delete()
+
         json_resp = response.json()
 
         return JsonResponse(json_resp, status=response.status_code)

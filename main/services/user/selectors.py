@@ -1,5 +1,5 @@
 from main.const_data.serv_info import SERV_NAME
-from main.models import AppUser, ProjectEmployee
+from main.models import AppUser, ProjectEmployee, AuthData
 
 
 def is_sub_user(user: AppUser) -> bool:
@@ -7,7 +7,7 @@ def is_sub_user(user: AppUser) -> bool:
 
 
 def get_app_user_by_token(token: str):
-    return AppUser.objects.filter(token_data=token).first()
+    return AuthData.objects.filter(token_data=token).first().user
 
 
 def is_exist_user_phone(phone: str):

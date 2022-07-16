@@ -23,3 +23,5 @@ admin.site.register(HistoryAdvance)
 admin.site.register(HistoryWorker)
 
 admin.site.register(HistoryProject)
+
+admin.site.register(AuthData)

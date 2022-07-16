@@ -11,8 +11,6 @@ class AppUser(models.Model):
         return 'users_avatar/' + 'user_{0}/{1}'.format(self.id, filename)
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    token_data = models.TextField(verbose_name="token", unique=False, null=True, blank=True)
-    refresh_token_data = models.TextField(verbose_name="refresh token", unique=False, null=True, blank=True)
     name = models.CharField(verbose_name="Имя пользователя", null=False, unique=False, blank=False, max_length=255,
                             default='Имя')
     email = models.EmailField(verbose_name="email пользователя", unique=True, null=False, blank=False,
@@ -27,6 +25,20 @@ class AppUser(models.Model):
 
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"
+
+
+class AuthData(models.Model):
+    class Meta:
+        verbose_name = "Токены пользователя"
+        verbose_name_plural = "Токены пользователей"
+
+    user = models.ForeignKey(to=AppUser, verbose_name="Пользователь", on_delete=models.CASCADE)
+    token_data = models.TextField(verbose_name="token", unique=True, null=False, blank=False)
+    refresh_token_data = models.TextField(verbose_name="refresh token", unique=True, null=False, blank=False)
+    valid_until = models.DateField(verbose_name='Срок годности токена', null=False, blank=False)
+
+    def __str__(self):
+        return f"Auth data {self.pk}"
 
 
 class SocialNetwork(models.Model):
