@@ -57,6 +57,7 @@ class ProjectView(View):
 
                 roles = []
                 for role_from_body in roles_list:
+                    del role_from_body['id']
                     role_from_body['project'] = project
                     role_from_body['is_base'] = False
                     role_from_body['author'] = user

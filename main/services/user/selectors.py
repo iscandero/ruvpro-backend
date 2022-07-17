@@ -23,7 +23,7 @@ def get_app_user_by_worker(worker: ProjectEmployee):
 
 
 def get_avatar_path(user: AppUser):
-    return None if user.avatar is None else SERV_NAME + str(user.avatar.url)
+    return None if not user.avatar else SERV_NAME + str(user.avatar.url)
 
 
 def get_app_user_by_email(email: str):
