@@ -21,7 +21,7 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
                                              'work_time': 0,
                                              'avatar': avatar,
                                              'name': worker.user.name,
-                                             'project_id': worker.project_id,
+                                             'projectId': worker.project_id,
                                              })
     return workers_output_list_of_dicts
 
@@ -32,11 +32,11 @@ def get_worker_output_data(worker: ProjectEmployee):
         'userId': worker.user.id,
         'rate': worker.project.average_rate,
         'advance': worker.advance,
-        'role_id': worker.role.id,
+        'roleId': worker.role.id,
         'salary': worker.salary,
-        'work_time': worker.work_time,
+        'workTime': worker.work_time,
         'name': worker.user.name,
-        'project_id': worker.project.id,
+        'projectId': worker.project.id,
         'roleName': worker.role.name,
         'roleColor': worker.role.color,
     }
@@ -48,7 +48,7 @@ def get_worker_output_data_for_statistic(worker: ProjectEmployee, income, work_t
         'name': worker.user.name,
         'userId': worker.user.id,
         'income': income,
-        'work_time': work_time,
+        'workTime': work_time,
         'rate': rate,
         'projectName': worker.project.name,
         'projectId': worker.project.id,
@@ -63,12 +63,12 @@ def get_full_worker_output_data(worker: ProjectEmployee):
         'userId': worker.user.id,
         'rate': worker.project.average_rate,
         'advance': worker.advance,
-        'role_id': worker.role.id,
+        'roleId': worker.role.id,
         'salary': worker.salary,
-        'work_time': worker.work_time,
+        'workTime': worker.work_time,
         'avatar': avatar,
         'name': worker.user.name,
-        'project_id': worker.project.id,
+        'projectId': worker.project.id,
         'roleName': worker.role.name,
         'roleColor': worker.role.color,
     }
