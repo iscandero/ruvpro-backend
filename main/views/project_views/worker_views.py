@@ -191,7 +191,7 @@ class TimeEntryView(View):
                         'advance': current_employee.advance,
                         'roleId': current_employee.role.id,
                         'salary': current_employee.salary,
-                        'workTime': time_entry.work_time,
+                        'workTime': time_entry.work_time * 3600,
                         'avatar': avatar,
                         'name': current_user.name,
                         'projectId': current_employee.project.id
