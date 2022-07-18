@@ -18,7 +18,7 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
                                              'roleName': worker.role.name,
                                              'roleColor': worker.role.color,
                                              'salary': 0,
-                                             'work_time': 0,
+                                             'workTime': 0,
                                              'avatar': avatar,
                                              'name': worker.user.name,
                                              'projectId': worker.project_id,
