@@ -60,7 +60,7 @@ def get_output_projects_by_member_and_owner(member: AppUser, owner: AppUser) -> 
                 {
                     'id': need_worker.project.id,
                     'name': need_worker.project.name,
-                    'role_id': need_worker.role.id,
+                    'roleId': need_worker.role.id,
                     'roleName': need_worker.role.name,
                     'roleColor': need_worker.role.color,
                 }
@@ -82,7 +82,7 @@ def get_output_projects_by_member_and_willing(member: AppUser, willing: AppUser)
                 {
                     'id': need_worker.project.id,
                     'name': need_worker.project.name,
-                    'role_id': need_worker.role.id,
+                    'roleId': need_worker.role.id,
                     'roleName': need_worker.role.name,
                     'roleColor': need_worker.role.color,
                 }

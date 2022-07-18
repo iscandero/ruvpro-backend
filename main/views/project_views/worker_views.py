@@ -189,12 +189,12 @@ class TimeEntryView(View):
                         'userId': current_user.name,
                         'rate': current_employee.project.average_rate,
                         'advance': current_employee.advance,
-                        'role_id': current_employee.role.id,
+                        'roleId': current_employee.role.id,
                         'salary': current_employee.salary,
-                        'work_time': time_entry.work_time,
+                        'workTime': time_entry.work_time,
                         'avatar': avatar,
                         'name': current_user.name,
-                        'project_id': current_employee.project.id
+                        'projectId': current_employee.project.id
                     }
 
                     return JsonResponse(output_data, status=200)
