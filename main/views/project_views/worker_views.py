@@ -187,7 +187,7 @@ class TimeEntryView(View):
                     output_data = {
                         'id': time_entry.id,
                         'userId': current_user.name,
-                        'rate': current_employee.project.average_rate,
+                        'rate': current_employee.project.average_rate * current_employee.role.percentage/100,
                         'advance': current_employee.advance,
                         'roleId': current_employee.role.id,
                         'salary': current_employee.salary,

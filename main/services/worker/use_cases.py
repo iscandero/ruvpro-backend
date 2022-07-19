@@ -10,15 +10,19 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
     workers_output_list_of_dicts = []
     for worker in employees:
         avatar = None if not worker.user.avatar else SERV_NAME + str(worker.user.avatar.url)
+        if worker.project.average_rate is not None and worker.role.percentage is not None:
+            rate = worker.project.average_rate * worker.role.percentage / 100
+        else:
+            rate = 0
         workers_output_list_of_dicts.append({'id': worker.id,
                                              'userId': worker.user_id,
-                                             'rate': worker.project.average_rate,
+                                             'rate': rate,
                                              'advance': worker.advance,
                                              'roleId': worker.role_id,
                                              'roleName': worker.role.name,
                                              'roleColor': worker.role.color,
-                                             'salary': 0,
-                                             'workTime': 0,
+                                             'salary': worker.salary,
+                                             'workTime': worker.work_time * 3600,
                                              'avatar': avatar,
                                              'name': worker.user.name,
                                              'projectId': worker.project_id,
@@ -27,10 +31,14 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
 
 
 def get_worker_output_data(worker: ProjectEmployee):
+    if worker.project.average_rate is not None and worker.role.percentage is not None:
+        rate = worker.project.average_rate * worker.role.percentage / 100
+    else:
+        rate = 0
     output_data = {
         'id': worker.id,
         'userId': worker.user.id,
-        'rate': worker.project.average_rate,
+        'rate': rate,
         'advance': worker.advance,
         'roleId': worker.role.id,
         'salary': worker.salary,
@@ -61,7 +69,7 @@ def get_full_worker_output_data(worker: ProjectEmployee):
     output_data = {
         'id': worker.id,
         'userId': worker.user.id,
-        'rate': worker.project.average_rate,
+        'rate': worker.project.average_rate * worker.role.percentage / 100,
         'advance': worker.advance,
         'roleId': worker.role.id,
         'salary': worker.salary,
