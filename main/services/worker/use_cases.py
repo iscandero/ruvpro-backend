@@ -12,6 +12,8 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
         avatar = None if not worker.user.avatar else SERV_NAME + str(worker.user.avatar.url)
         if worker.project.average_rate is not None and worker.role.percentage is not None:
             rate = worker.project.average_rate * worker.role.percentage / 100
+        elif worker.role.amount is not None and worker.work_time is not None and worker.work_time != 0:
+            rate = worker.role.amount / worker.work_time
         else:
             rate = 0
         workers_output_list_of_dicts.append({'id': worker.id,
@@ -33,6 +35,8 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
 def get_worker_output_data(worker: ProjectEmployee):
     if worker.project.average_rate is not None and worker.role.percentage is not None:
         rate = worker.project.average_rate * worker.role.percentage / 100
+    elif worker.role.amount is not None and worker.work_time is not None and worker.work_time != 0:
+        rate = worker.role.amount / worker.work_time
     else:
         rate = 0
     output_data = {
@@ -66,10 +70,16 @@ def get_worker_output_data_for_statistic(worker: ProjectEmployee, income, work_t
 
 def get_full_worker_output_data(worker: ProjectEmployee):
     avatar = get_avatar_path(user=worker.user)
+    if worker.project.average_rate is not None and worker.role.percentage is not None:
+        rate = worker.project.average_rate * worker.role.percentage / 100
+    elif worker.role.amount is not None and worker.work_time is not None and worker.work_time != 0:
+        rate = worker.role.amount / worker.work_time
+    else:
+        rate = 0
     output_data = {
         'id': worker.id,
         'userId': worker.user.id,
-        'rate': worker.project.average_rate * worker.role.percentage / 100,
+        'rate': rate,
         'advance': worker.advance,
         'roleId': worker.role.id,
         'salary': worker.salary,

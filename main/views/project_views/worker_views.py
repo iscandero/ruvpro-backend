@@ -184,10 +184,17 @@ class TimeEntryView(View):
 
                     avatar = get_avatar_path(user=current_user)
 
+                    if current_employee.project.average_rate is not None and current_employee.role.percentage is not None:
+                        rate = current_employee.project.average_rate * current_employee.role.percentage / 100
+                    elif current_employee.role.amount is not None and current_employee.work_time is not None and current_employee.work_time != 0:
+                        rate = current_employee.role.amount / current_employee.work_time
+                    else:
+                        rate = 0
+
                     output_data = {
                         'id': time_entry.id,
                         'userId': current_user.name,
-                        'rate': current_employee.project.average_rate * current_employee.role.percentage/100,
+                        'rate': rate,
                         'advance': current_employee.advance,
                         'roleId': current_employee.role.id,
                         'salary': current_employee.salary,

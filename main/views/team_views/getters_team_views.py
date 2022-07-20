@@ -10,7 +10,8 @@ from main.services.project.use_cases import get_output_projects_by_member_and_ow
 from main.services.social.use_cases import get_social_output_list_by_user
 from main.services.team.selectors import get_team_by_owner, is_user_in_team
 from main.services.user.selectors import get_app_user_by_token, get_app_user_by_id
-from main.services.user.use_cases import get_app_user_output_data_with_social_list
+from main.services.user.use_cases import get_app_user_output_data_with_social_list, \
+    get_full_app_user_output_data_with_willing
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -24,11 +25,19 @@ class GetUsersByTeam(View):
                 team = get_team_by_owner(owner=user)
                 output_list = []
                 participants = team.participants.all()
+
                 if participants is not None:
-                    for participant in participants:
-                        social_list = get_social_output_list_by_user(user=participant)
-                        output_list.append(
-                            get_app_user_output_data_with_social_list(user=participant, social_list=social_list))
+                    if 'projects' in request.headers:
+                        for participant in participants:
+                            social_list = get_social_output_list_by_user(user=participant)
+                            output_list.append(
+                                get_full_app_user_output_data_with_willing(user=participant, social_list=social_list,
+                                                                           willing=user))
+                    else:
+                        for participant in participants:
+                            social_list = get_social_output_list_by_user(user=participant)
+                            output_list.append(
+                                get_app_user_output_data_with_social_list(user=participant, social_list=social_list))
 
                 output_data = {
                     "teammates": output_list
