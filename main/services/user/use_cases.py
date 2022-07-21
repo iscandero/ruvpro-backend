@@ -14,7 +14,7 @@ def get_app_user_output_data_with_social_list(user: AppUser, social_list: list) 
         'avatar': avatar,
         'bio': user.bio,
         'social': social_list,
-        'authority': user.authority
+        'authority': user.authority,
     }
 
     return data

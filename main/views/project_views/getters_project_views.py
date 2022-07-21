@@ -93,6 +93,7 @@ class ProjectView(View):
         name = patch_body.get('name')
         budget = patch_body.get('budget')
         roles = patch_body.get('roles')
+        currency = patch_body.get('currency')
 
         project = get_project_by_id(project_id=project_id)
 
@@ -104,6 +105,10 @@ class ProjectView(View):
         if budget is not None:
             project.budget = budget
             update_fields.append('budget')
+
+        if currency is not None:
+            project.currency = currency
+            update_fields.append('currency')
 
         project.save(update_fields=update_fields)
 

@@ -16,6 +16,7 @@ def get_full_output_project_data(project: Project, workers: list, roles: list) -
         'isArchived': project.is_archived,
         'workTime': project.work_time * 3600,
         'averageRate': project.average_rate,
+        'currency': project.currency,
     }
     return output_data
 
@@ -40,7 +41,8 @@ def get_long_output_projects_by_owner(owner: AppUser) -> list:
                                               'budget': project.budget,
                                               'isArchived': project.is_archived,
                                               'workTime': project.work_time * 3600,
-                                              'averageRate': project.average_rate
+                                              'averageRate': project.average_rate,
+                                              'currency': project.currency,
                                               })
     return instance_output_list_of_dicts
 

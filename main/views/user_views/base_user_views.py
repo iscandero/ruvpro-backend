@@ -25,6 +25,7 @@ class UserView(View):
             phone = patch_body.get('phone')
             bio = patch_body.get('bio')
             authority = patch_body.get('authority')
+            currency = patch_body.get('currency')
 
             social_list = patch_body.get('social')
 
@@ -48,6 +49,10 @@ class UserView(View):
             if name is not None:
                 need_user.name = name
                 fields_to_update.append('name')
+
+            if currency is not None:
+                need_user.currency = currency
+                fields_to_update.append('currency')
 
             if email is not None:
                 if not AppUser.objects.filter(email=email):

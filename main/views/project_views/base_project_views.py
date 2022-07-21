@@ -53,7 +53,9 @@ class ProjectView(View):
                 roles_list = post_body.get('roles')
                 workers_list = post_body.get('workers')
                 budget = post_body.get('budget')
-                project = Project.objects.create(name=name, budget=budget, is_archived=False, owner=user)
+                currency = post_body.get('currency')
+                project = Project.objects.create(name=name, budget=budget, is_archived=False, owner=user,
+                                                 currency=currency)
 
                 roles = []
                 for role_from_body in roles_list:

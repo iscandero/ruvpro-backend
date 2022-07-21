@@ -15,24 +15,40 @@ from main.services.user.selectors import get_app_user_by_token
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class UserSettingsCurrencyView(View):
+    def put(self, request):
+        token = get_token(request)
+        need_user = get_app_user_by_token(token=token)
+
+        if need_user:
+            post_body = json.loads(request.body)
+            currency = post_body.get('currency')
+
+            need_user.currency = currency
+            need_user.save(update_fields=['currency'])
+
+            return JsonResponse(SUCCESS_DATA, status=200)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class UserSettingsView(View):
     def get(self, request):
         token = get_token(request)
         need_user = get_app_user_by_token(token=token)
         if need_user:
 
-            if need_user.authority == 1:
+            instance_output_list_of_dicts = get_pretty_view_base_roles_by_user(user=need_user)
 
-                instance_output_list_of_dicts = get_pretty_view_base_roles_by_user(user=need_user)
+            output_data = {
+                "currency": need_user.currency,
+                "roles": instance_output_list_of_dicts
+            }
 
-                output_data = {
-                    "roles": instance_output_list_of_dicts
-                }
+            return JsonResponse(output_data, status=200)
 
-                return JsonResponse(output_data, status=200)
-            else:
-
-                return JsonResponse(USER_NOT_A_SUB_DATA, status=400)
 
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=401)

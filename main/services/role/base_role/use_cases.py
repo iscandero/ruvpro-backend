@@ -30,26 +30,27 @@ def delete_base_roles_for_unsub_user(roles_author: AppUser) -> None:
 
 
 def get_pretty_view_base_roles_by_user(user: AppUser) -> list:
-    roles = get_all_base_roles_by_author(author=user)
-
     roles_output_list_of_dicts = []
-    for role in roles:
-        if role.percentage is not None:
-            roles_output_list_of_dicts.append({
-                'id': role.id,
-                'name': role.name,
-                'description': role.description,
-                'color': role.color,
-                'percentage': role.percentage,
-                'type': role.type
-            })
-        else:
-            roles_output_list_of_dicts.append({
-                'id': role.id,
-                'name': role.name,
-                'description': role.description,
-                'color': role.color,
-                'amount': role.amount,
-                'type': role.type
-            })
+    if user.authority == 1:
+        roles = get_all_base_roles_by_author(author=user)
+        for role in roles:
+            if role.percentage is not None:
+                roles_output_list_of_dicts.append({
+                    'id': role.id,
+                    'name': role.name,
+                    'description': role.description,
+                    'color': role.color,
+                    'percentage': role.percentage,
+                    'type': role.type
+                })
+            else:
+                roles_output_list_of_dicts.append({
+                    'id': role.id,
+                    'name': role.name,
+                    'description': role.description,
+                    'color': role.color,
+                    'amount': role.amount,
+                    'type': role.type
+                })
+
     return roles_output_list_of_dicts

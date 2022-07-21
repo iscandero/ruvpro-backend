@@ -1,5 +1,7 @@
 from django.db import models
 
+from main.const_data.currency_codes import currency_list
+
 
 class AppUser(models.Model):
     class Meta:
@@ -22,6 +24,8 @@ class AppUser(models.Model):
     authority = models.IntegerField(verbose_name="Полномочия пользователя", null=False, blank=False, unique=False)
     is_register = models.BooleanField(verbose_name='Флаг зарегистрированого пользователя', null=False, blank=False,
                                       default=True)
+    currency = models.CharField(verbose_name='Валюта', null=True, blank=True, choices=currency_list, default='RUB',
+                                max_length=3)
 
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"
@@ -110,6 +114,9 @@ class Project(models.Model):
                                          null=True,
                                          blank=True,
                                          default=0)
+
+    currency = models.CharField(verbose_name='Валюта', null=False, blank=False, choices=currency_list, default='RUB',
+                                max_length=3)
 
     def __str__(self):
         return f"Проект {self.id}: {self.name}"
