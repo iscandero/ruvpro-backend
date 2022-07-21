@@ -9,7 +9,7 @@ from main.const_data.template_errors import *
 from main.parsers import *
 from main.services.project.selectors import get_project_by_id
 from main.services.project.use_cases import get_full_output_project_data, get_short_output_projects_by_owner, \
-    get_long_output_projects_by_owner
+    get_long_output_projects_by_owner, get_long_output_projects_by_owner__full
 from main.services.role.selectors import get_role_by_id
 from main.services.role.use_cases import get_pretty_view_roles_by_project
 from main.services.user.selectors import get_app_user_by_token
@@ -26,7 +26,7 @@ class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
 
         if user:
             instance_output_list_of_dicts = get_short_output_projects_by_owner(
-                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner(owner=user)
+                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner__full(owner=user)
 
             page_number = int(request.headers['X-Pagination-Current-Page'])
             count_in_page = int(request.headers['X-Pagination-Per-Page'])

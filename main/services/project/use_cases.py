@@ -2,8 +2,10 @@ from main.models import Project, AppUser
 from main.services.project.selectors import get_projects_by_owner, get_projects_ids_by_owner, \
     get_projects_ids_by_owner_or_member
 from main.services.role.project_role.selectors import get_role_by_project_and_name
+from main.services.role.use_cases import get_pretty_view_roles_by_project
 from main.services.time_entry.interactors import calculate_work_time_all_workers_with_role
 from main.services.worker.selectors import get_workers_by_user_and_projects_ids
+from main.services.worker.use_cases import get_pretty_view_workers_by_project
 
 
 def get_full_output_project_data(project: Project, workers: list, roles: list) -> dict:
@@ -44,6 +46,21 @@ def get_long_output_projects_by_owner(owner: AppUser) -> list:
                                               'averageRate': project.average_rate,
                                               'currency': project.currency,
                                               })
+    return instance_output_list_of_dicts
+
+
+def get_long_output_projects_by_owner__full(owner: AppUser) -> list:
+    projects = get_projects_by_owner(owner_project=owner)
+    instance_output_list_of_dicts = []
+    for project in projects:
+        workers_output_list_of_dicts = get_pretty_view_workers_by_project(project=project)
+
+        roles_output_list_of_dicts = get_pretty_view_roles_by_project(project=project)
+
+        output_data = get_full_output_project_data(project=project, workers=workers_output_list_of_dicts,
+                                                   roles=roles_output_list_of_dicts)
+        instance_output_list_of_dicts.append(output_data)
+
     return instance_output_list_of_dicts
 
 
