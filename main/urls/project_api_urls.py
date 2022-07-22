@@ -4,7 +4,7 @@ from main.views.project_views import base_project_views, getters_project_views, 
 
 urlpatterns = [
     path('api/project', base_project_views.ProjectView.as_view()),
-    path('api/project/<int:project_id>/time-entry', worker_views.TimeEntryView.as_view()),
+    path('api/project/time-entry', worker_views.TimeEntryView.as_view()),
     path('api/workers/<int:worker_id>', worker_views.WorkerViewWithIndexInEnd.as_view()),
     path('api/project/<int:project_id>/worker', worker_views.AddWorkerView.as_view()),
     path('api/projects/paginate', getters_project_views.GetProjectsWithPaginateView.as_view()),

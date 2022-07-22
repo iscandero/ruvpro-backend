@@ -15,7 +15,7 @@ from main.services.role.selectors import get_role_by_id
 from main.services.user.selectors import get_app_user_by_token, get_avatar_path
 from main.services.work_with_date import convert_timestamp_to_date
 from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project
-from main.services.worker.use_cases import get_worker_output_data, get_full_worker_output_data
+from main.services.worker.use_cases import get_worker_output_data, get_full_worker_output_data, get_rate_by_worker
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -158,59 +158,42 @@ class AdvanceView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TimeEntryView(View):
-    def post(self, request, project_id):
+    def post(self, request):
         token = get_token(request)
         user = get_app_user_by_token(token=token)
 
         if user:
-            project = get_project_by_id(project_id=project_id)
-            owner_project = project.owner
-            role_accounting = get_role_by_name_and_author_and_project(name='Журнал учета', author=owner_project,
-                                                                      project=project)
-
-            if owner_project == user or is_user_has_role_in_project(user=user, role=role_accounting, project=project):
                 post_body = json.loads(request.body)
+                times = post_body.get('times')
 
-                date = convert_timestamp_to_date(post_body.get('date'))
-                # перевод в часы из секунд
-                work_time = (post_body.get('workTime') / 3600)
-                worker_id = post_body.get('worker_id')
+                output_list = []
+                for time in times:
+                    current_employee = get_worker_by_id(worker_id=time['workerId'])
+                    if current_employee:
+                        date = convert_timestamp_to_date(time['date'])
+                        work_time = time['workTime'] / 3600
+                        time_entry = TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
+                                                              initiator=user)
 
-                current_employee = get_worker_by_id(worker_id=worker_id)
-                if current_employee:
-                    time_entry = TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
-                                                          initiator=user)
-                    current_user = current_employee.user
+                        current_user = current_employee.user
+                        avatar = get_avatar_path(user=current_user)
 
-                    avatar = get_avatar_path(user=current_user)
+                        output_list.append({
+                            'id': time_entry.id,
+                            'userId': current_user.name,
+                            'rate': get_rate_by_worker(worker=current_employee),
+                            'advance': current_employee.advance,
+                            'roleId': current_employee.role.id,
+                            'salary': current_employee.salary,
+                            'workTime': time_entry.work_time * 3600,
+                            'avatar': avatar,
+                            'name': current_user.name,
+                            'projectId': current_employee.project.id
+                        })
 
-                    if current_employee.project.average_rate is not None and current_employee.role.percentage is not None:
-                        rate = current_employee.project.average_rate * current_employee.role.percentage / 100
-                    elif current_employee.role.amount is not None and current_employee.work_time is not None and current_employee.work_time != 0:
-                        rate = current_employee.role.amount / current_employee.work_time
-                    else:
-                        rate = 0
+                output_data = {
+                    'workers': output_list
+                }
+                return JsonResponse(output_data, status=200)
 
-                    output_data = {
-                        'id': time_entry.id,
-                        'userId': current_user.name,
-                        'rate': rate,
-                        'advance': current_employee.advance,
-                        'roleId': current_employee.role.id,
-                        'salary': current_employee.salary,
-                        'workTime': time_entry.work_time * 3600,
-                        'avatar': avatar,
-                        'name': current_user.name,
-                        'projectId': current_employee.project.id
-                    }
-
-                    return JsonResponse(output_data, status=200)
-
-                else:
-
-                    return JsonResponse(WORKER_NOT_FOUND, status=404)
-
-            return JsonResponse(NO_PERMISSION_DATA, status=404)
-
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+        return JsonResponse(NO_PERMISSION_DATA, status=404)
