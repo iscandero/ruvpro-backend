@@ -6,7 +6,7 @@ ACTUAL_URLS = [
     'api/user/change-phone',
     'api/file/upload',
     'api/project',
-    'api/project/<int:project_id>/time-entry',
+    'api/project/time-entry (UPDATED)',
     'api/workers/<int:worker_id>',
     'api/project/<int:project_id>/worker',
     'api/projects/paginate',

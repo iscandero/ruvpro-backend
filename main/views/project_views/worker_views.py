@@ -179,8 +179,8 @@ class TimeEntryView(View):
                         avatar = get_avatar_path(user=current_user)
 
                         output_list.append({
-                            'id': time_entry.id,
-                            'userId': current_user.name,
+                            'id': current_employee.id,
+                            'userId': current_user.id,
                             'rate': get_rate_by_worker(worker=current_employee),
                             'advance': current_employee.advance,
                             'roleId': current_employee.role.id,
@@ -188,7 +188,9 @@ class TimeEntryView(View):
                             'workTime': time_entry.work_time * 3600,
                             'avatar': avatar,
                             'name': current_user.name,
-                            'projectId': current_employee.project.id
+                            'projectId': current_employee.project.id,
+                            'roleName': current_employee.role.name,
+                            'roleColor': current_employee.role.color,
                         })
 
                 output_data = {
