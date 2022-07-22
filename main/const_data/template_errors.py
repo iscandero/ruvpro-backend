@@ -25,3 +25,4 @@ NO_FILE_DATA = {'message': 'Не выбрано ни одно фото'}
 SUCCESS_DATA = {'message': 'Успешно'}
 USER_NOT_EXIST_IN_TEAM_DATA = {'message': 'Пользователь не найден в команде',
                                'code': 4463}
+NOT_DELETE_DATA = {'message': 'Невозможно удалить себя из команды'}

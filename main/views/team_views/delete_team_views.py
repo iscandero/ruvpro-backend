@@ -20,9 +20,11 @@ class DeleteUserByTeam(View):
                 team = get_team_by_owner(owner=user)
                 user_to_delete = get_app_user_by_id(id=user_id)
                 if is_user_in_team(user=user_to_delete, team=team):
-                    team.participants.remove(user_to_delete)
-                    return JsonResponse(DELETE_SUCCESS_DATA, status=200)
-
+                    if user_to_delete != user:
+                        team.participants.remove(user_to_delete)
+                        return JsonResponse(DELETE_SUCCESS_DATA, status=200)
+                    else:
+                        return JsonResponse(NOT_DELETE_DATA, status=403)
                 else:
                     return JsonResponse(USER_NOT_EXIST_IN_TEAM_DATA, status=404)
             else:

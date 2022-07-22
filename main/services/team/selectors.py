@@ -6,7 +6,9 @@ def get_team_by_owner(owner: AppUser):
     if team is not None:
         return team
     else:
-        return Team.objects.create(owner=owner)
+        team = Team.objects.create(owner=owner)
+        team.participants.add(owner)
+        return team
 
 
 def is_user_in_team(user: AppUser, team: Team) -> bool:

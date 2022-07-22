@@ -42,5 +42,18 @@ def get_short_user_output_data(user: AppUser):
         'id': user.id,
         'name': user.name,
         'email': user.email,
+
+    }
+    return output_data
+
+
+def get_no_register_user_output_data(user: AppUser):
+    output_data = {
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'authority': user.authority,
+        'social': [],
+        'phone': "",
     }
     return output_data
