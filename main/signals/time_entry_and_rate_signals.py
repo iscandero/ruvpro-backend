@@ -21,7 +21,8 @@ def calculate_project_work_time_and_avg_rate(sender, instance, **kwargs):
 
     budget_without_additional_income = get_budget_without_additional_income_in_project(project=project)
     project.average_rate = budget_without_additional_income / project_work_time if project_work_time != 0 else 0
-    project.save(update_fields=['work_time', 'average_rate'])
+    project.save(update_fields=['work_time'])
+    project.save(update_fields=['average_rate'])
 
 
 @receiver(post_save, sender=TimeEntry)

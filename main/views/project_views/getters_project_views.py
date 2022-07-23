@@ -104,7 +104,7 @@ class ProjectView(View):
 
         if budget is not None:
             project.budget = budget
-            update_fields.append('budget')
+            project.save(update_fields=['budget'])
 
         if currency is not None:
             project.currency = currency
@@ -139,4 +139,4 @@ class ProjectView(View):
         output_data = get_full_output_project_data(project=project, workers=workers_output_list_of_dicts,
                                                    roles=roles_output_list_of_dicts)
 
-        return JsonResponse(output_data, status=201)
+        return JsonResponse(output_data, status=200)

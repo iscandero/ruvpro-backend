@@ -14,12 +14,11 @@ def write_to_history_advance(sender, instance, created, update_fields, **kwargs)
 
 
 @receiver(post_save, sender=ProjectEmployee)
-def write_to_history_worker(sender, instance, created, update_fields, **kwargs):
-    if created or 'salary' in update_fields or 'rate' in update_fields or 'work_time' in update_fields:
-        HistoryWorker.objects.create(date_change=date.today(), employee=instance,
-                                     salary=instance.salary, rate=instance.project.average_rate,
-                                     work_time=instance.work_time)
-
+def write_to_history_worker(sender, instance, **kwargs):
+    # if created or 'salary' in update_fields or 'rate' in update_fields or 'work_time' in update_fields:
+    HistoryWorker.objects.create(date_change=date.today(), employee=instance,
+                                 salary=instance.salary, rate=instance.project.average_rate,
+                                 work_time=instance.work_time)
 
 # @receiver(post_save, sender=Project)
 # def write_to_history_project(sender, instance, created, update_fields, **kwargs):
