@@ -242,3 +242,16 @@ class Team(models.Model):
 
     def __str__(self):
         return f"Команда {self.id}"
+
+
+class ProjectTimeEntryHistory(models.Model):
+    class Meta:
+        verbose_name = "Рабочие времена на проекте"
+        verbose_name_plural = "Рабочие времена на проекте"
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    project = models.ForeignKey(to=Project, verbose_name="Проект", on_delete=models.CASCADE)
+    work_time = models.FloatField(verbose_name="Общее рабочее время", unique=False, null=True, blank=False, default=0)
+
+    def __str__(self):
+        return f"Изменение времени {self.id} проекта {self.project.id}"

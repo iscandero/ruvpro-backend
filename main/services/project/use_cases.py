@@ -1,4 +1,6 @@
 from main.models import Project, AppUser
+from main.services.history_work_time_project.interactors import write_project_time_entry_to_history_table
+from main.services.history_work_time_project.use_cases import get_difference_project_work_time
 from main.services.project.selectors import get_projects_by_owner, get_projects_ids_by_owner, \
     get_projects_ids_by_owner_or_member
 from main.services.role.project_role.selectors import get_role_by_project_and_name
@@ -19,7 +21,9 @@ def get_full_output_project_data(project: Project, workers: list, roles: list) -
         'workTime': project.work_time * 3600,
         'averageRate': project.average_rate,
         'currency': project.currency,
+        'differenceTimeEntry': get_difference_project_work_time(project=project),
     }
+    write_project_time_entry_to_history_table(project=project)
     return output_data
 
 
