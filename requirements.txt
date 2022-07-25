@@ -1,3 +1,4 @@
-Django
+Django~=4.0.4
 Pillow
-requests
+requests~=2.26.0
+djangorestframework~=3.13.1

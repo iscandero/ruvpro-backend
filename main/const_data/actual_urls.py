@@ -13,7 +13,7 @@ ACTUAL_URLS = [
     'api/projects',
     'api/project/<int:project_id>/set-complete',
     'api/project/<int:project_id>',
-    'api/project/advance',
+    'api/project/advance (UPDATED)',
     'api/user/login',
     'api/user/signup',
     'api/user/send-code',

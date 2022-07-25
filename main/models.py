@@ -158,7 +158,7 @@ class ProjectEmployee(models.Model):
     user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
     role = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
-    advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False)
+    advance = models.FloatField(verbose_name="Размер аванса", null=False, blank=False, unique=False, default=0)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
                                default=0)
     work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=True,
@@ -170,11 +170,11 @@ class ProjectEmployee(models.Model):
 
 class HistoryAdvance(models.Model):
     class Meta:
-        verbose_name = "История авансов работника"
-        verbose_name_plural = "Истории авансов работников"
+        verbose_name = "Аванс работника"
+        verbose_name_plural = "Авансы работников"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True)
+    date = models.DateField(verbose_name='Дата выдачи', null=True, blank=True)
     employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False, default=0)
 

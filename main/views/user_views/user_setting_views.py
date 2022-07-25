@@ -4,10 +4,14 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
+from main.serializers.user_serializers import RoleSerializer
+from main.services.role.base_role.selectors import get_all_base_roles_by_author
 from main.services.role.base_role.use_cases import get_pretty_view_base_roles_by_user
 from main.services.role.selectors import get_role_by_id
 from main.services.role.use_cases import get_role_output_data
@@ -33,25 +37,43 @@ class UserSettingsCurrencyView(View):
             return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class UserSettingsView(View):
+class SettingsAPIView(APIView):
     def get(self, request):
         token = get_token(request)
         need_user = get_app_user_by_token(token=token)
         if need_user:
+            roles = get_all_base_roles_by_author(author=need_user)
+            return Response({"roles": RoleSerializer(roles, many=True).data, "currency": need_user.currency})
 
-            instance_output_list_of_dicts = get_pretty_view_base_roles_by_user(user=need_user)
+    def post(self, request):
+        token = get_token(request)
+        need_user = get_app_user_by_token(token=token)
+        request.data['author_id'] = need_user.id
+        serializer = RoleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
-            output_data = {
-                "currency": need_user.currency,
-                "roles": instance_output_list_of_dicts
-            }
 
-            return JsonResponse(output_data, status=200)
-
-
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+@method_decorator(csrf_exempt, name='dispatch')
+class UserSettingsView(View):
+    # def get(self, request):
+    #     token = get_token(request)
+    #     need_user = get_app_user_by_token(token=token)
+    #     if need_user:
+    #
+    #         instance_output_list_of_dicts = get_pretty_view_base_roles_by_user(user=need_user)
+    #
+    #         output_data = {
+    #             "currency": need_user.currency,
+    #             "roles": instance_output_list_of_dicts
+    #         }
+    #
+    #         return JsonResponse(output_data, status=200)
+    #
+    #
+    #     else:
+    #         return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
     def post(self, request):
         token = get_token(request)

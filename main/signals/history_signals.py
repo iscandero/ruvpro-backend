@@ -3,14 +3,7 @@ from datetime import date
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from main.models import ProjectEmployee, HistoryAdvance, HistoryWorker, HistoryProject, Project
-
-
-@receiver(post_save, sender=ProjectEmployee)
-def write_to_history_advance(sender, instance, created, update_fields, **kwargs):
-    if created or update_fields == {'advance'}:
-        HistoryAdvance.objects.create(date_change=date.today(), employee=instance,
-                                      advance=instance.advance)
+from main.models import ProjectEmployee, HistoryWorker, HistoryProject, Project
 
 
 @receiver(post_save, sender=ProjectEmployee)

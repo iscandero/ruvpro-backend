@@ -127,33 +127,47 @@ class AddWorkerView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdvanceView(View):
-    def put(self, request):
-        put_body = json.loads(request.body)
-
-        id_worker = put_body.get('workerId')
-        advance = put_body.get('advance')
-
+    def post(self, request):
         token = get_token(request)
         user = get_app_user_by_token(token=token)
 
         if user:
-            worker = get_worker_by_id(worker_id=id_worker)
+            post_body = json.loads(request.body)
+            times = post_body.get('times')
 
-            if worker:
-                if worker.project.owner == user:
-                    worker.advance = advance
-                    worker.save(update_fields=['advance'])
+            output_list = []
+            for time in times:
+                current_employee = get_worker_by_id(worker_id=time['workerId'])
+                if current_employee:
+                    date = convert_timestamp_to_date(time['date'])
+                    amount_advance = time['advance']
+                    advance = HistoryAdvance.objects.create(date=date, employee=current_employee,
+                                                            advance=amount_advance)
 
-                    return JsonResponse(SUCCESS_DATA, status=200)
+                    current_user = current_employee.user
+                    avatar = get_avatar_path(user=current_user)
 
-                else:
-                    return JsonResponse(NO_PERMISSION_DATA, status=404)
+                    output_list.append({
+                        'id': current_employee.id,
+                        'userId': current_user.id,
+                        'rate': get_rate_by_worker(worker=current_employee),
+                        'advance': current_employee.advance,
+                        'roleId': current_employee.role.id,
+                        'salary': current_employee.salary,
+                        'workTime': current_employee.work_time * 3600,
+                        'avatar': avatar,
+                        'name': current_user.name,
+                        'projectId': current_employee.project.id,
+                        'roleName': current_employee.role.name,
+                        'roleColor': current_employee.role.color,
+                    })
 
-            else:
-                return JsonResponse(WORKER_NOT_FOUND, status=404)
+            output_data = {
+                'workers': output_list
+            }
+            return JsonResponse(output_data, status=200)
 
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+        return JsonResponse(NO_PERMISSION_DATA, status=404)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -163,39 +177,39 @@ class TimeEntryView(View):
         user = get_app_user_by_token(token=token)
 
         if user:
-                post_body = json.loads(request.body)
-                times = post_body.get('times')
+            post_body = json.loads(request.body)
+            times = post_body.get('times')
 
-                output_list = []
-                for time in times:
-                    current_employee = get_worker_by_id(worker_id=time['workerId'])
-                    if current_employee:
-                        date = convert_timestamp_to_date(time['date'])
-                        work_time = time['workTime'] / 3600
-                        time_entry = TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
-                                                              initiator=user)
+            output_list = []
+            for time in times:
+                current_employee = get_worker_by_id(worker_id=time['workerId'])
+                if current_employee:
+                    date = convert_timestamp_to_date(time['date'])
+                    work_time = time['workTime'] / 3600
+                    time_entry = TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
+                                                          initiator=user)
 
-                        current_user = current_employee.user
-                        avatar = get_avatar_path(user=current_user)
+                    current_user = current_employee.user
+                    avatar = get_avatar_path(user=current_user)
 
-                        output_list.append({
-                            'id': current_employee.id,
-                            'userId': current_user.id,
-                            'rate': get_rate_by_worker(worker=current_employee),
-                            'advance': current_employee.advance,
-                            'roleId': current_employee.role.id,
-                            'salary': current_employee.salary,
-                            'workTime': current_employee.work_time * 3600,
-                            'avatar': avatar,
-                            'name': current_user.name,
-                            'projectId': current_employee.project.id,
-                            'roleName': current_employee.role.name,
-                            'roleColor': current_employee.role.color,
-                        })
+                    output_list.append({
+                        'id': current_employee.id,
+                        'userId': current_user.id,
+                        'rate': get_rate_by_worker(worker=current_employee),
+                        'advance': current_employee.advance,
+                        'roleId': current_employee.role.id,
+                        'salary': current_employee.salary,
+                        'workTime': current_employee.work_time * 3600,
+                        'avatar': avatar,
+                        'name': current_user.name,
+                        'projectId': current_employee.project.id,
+                        'roleName': current_employee.role.name,
+                        'roleColor': current_employee.role.color,
+                    })
 
-                output_data = {
-                    'workers': output_list
-                }
-                return JsonResponse(output_data, status=200)
+            output_data = {
+                'workers': output_list
+            }
+            return JsonResponse(output_data, status=200)
 
         return JsonResponse(NO_PERMISSION_DATA, status=404)
