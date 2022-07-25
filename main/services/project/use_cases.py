@@ -49,6 +49,7 @@ def get_long_output_projects_by_owner(owner: AppUser) -> list:
                                               'workTime': project.work_time * 3600,
                                               'averageRate': project.average_rate,
                                               'currency': project.currency,
+                                              'differenceTimeEntry': get_difference_project_work_time(project=project),
                                               })
     return instance_output_list_of_dicts
 

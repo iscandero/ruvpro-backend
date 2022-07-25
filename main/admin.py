@@ -6,6 +6,8 @@ admin.site.register(Project)
 
 admin.site.register(ProjectEmployee)
 
+admin.site.register(ProjectTimeEntryHistory)
+
 admin.site.register(SocialNetwork)
 
 admin.site.register(Team)

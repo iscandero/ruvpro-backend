@@ -48,7 +48,7 @@ class GetProjectsView(View):
         if user:
 
             instance_output_list_of_dicts = get_short_output_projects_by_owner(
-                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner(owner=user)
+                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner__full(owner=user)
 
             output_data = {
                 "projects": instance_output_list_of_dicts
