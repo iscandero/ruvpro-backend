@@ -178,9 +178,8 @@ class TimeEntryView(View):
         user = get_app_user_by_token(token=token)
 
         if user:
-            get_body = json.loads(request.body)
-            worker_id = get_body.get('workerId')
-            timestamp = get_body.get('date')
+            worker_id = float(request.headers['workerId'])
+            timestamp = float(request.headers['date'])
             date = convert_timestamp_to_date(timestamp)
             worker = get_worker_by_id(worker_id=worker_id)
             time_entry = get_time_entry_by_date_and_worker(worker=worker, date=date)
