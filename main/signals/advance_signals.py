@@ -10,4 +10,4 @@ def calculate_worker_work_time(sender, instance, **kwargs):
     worker = instance.employee
     advance_aggregate = get_sum_advance_by_worker(worker=worker)
     worker.advance = advance_aggregate if advance_aggregate is not None else 0
-    worker.save(update_fields=['work_time'])
+    worker.save(update_fields=['advance'])

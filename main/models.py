@@ -42,7 +42,7 @@ class AuthData(models.Model):
     valid_until = models.DateField(verbose_name='Срок годности токена', null=False, blank=False)
 
     def __str__(self):
-        return f"Auth data {self.pk}"
+        return f"Auth data user - {self.user.name}"
 
 
 class SocialNetwork(models.Model):

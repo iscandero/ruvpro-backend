@@ -12,6 +12,7 @@ from main.services.project.selectors import get_projects_by_owner, get_project_b
 from main.services.role.project_role.selectors import get_role_by_name_and_author_and_project, \
     is_user_has_role_in_project
 from main.services.role.selectors import get_role_by_id
+from main.services.time_entry.selectors import get_time_entry_by_date_and_worker
 from main.services.user.selectors import get_app_user_by_token, get_avatar_path
 from main.services.work_with_date import convert_timestamp_to_date
 from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project
@@ -172,6 +173,28 @@ class AdvanceView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TimeEntryView(View):
+    def get(self, request):
+        token = get_token(request)
+        user = get_app_user_by_token(token=token)
+
+        if user:
+            get_body = json.loads(request.body)
+            worker_id = get_body.get('workerId')
+            timestamp = get_body.get('date')
+            date = convert_timestamp_to_date(timestamp)
+            worker = get_worker_by_id(worker_id=worker_id)
+            time_entry = get_time_entry_by_date_and_worker(worker=worker, date=date)
+
+            time_to_output = time_entry.work_time * 3600 if time_entry else 0
+            output_data = {
+                "date": timestamp,
+                "workTime": time_to_output,
+                "workerId": worker_id
+            }
+            return JsonResponse(output_data, status=200)
+
+        return JsonResponse(NO_PERMISSION_DATA, status=404)
+
     def post(self, request):
         token = get_token(request)
         user = get_app_user_by_token(token=token)
@@ -186,8 +209,13 @@ class TimeEntryView(View):
                 if current_employee:
                     date = convert_timestamp_to_date(time['date'])
                     work_time = time['workTime'] / 3600
-                    time_entry = TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
-                                                          initiator=user)
+                    time_entry = get_time_entry_by_date_and_worker(worker=current_employee, date=date)
+                    if time_entry:
+                        time_entry.work_time = work_time
+                        time_entry.save(update_fields=['work_time'])
+                    else:
+                        TimeEntry.objects.create(date=date, work_time=work_time, employee=current_employee,
+                                                 initiator=user)
 
                     current_user = current_employee.user
                     avatar = get_avatar_path(user=current_user)
@@ -212,4 +240,4 @@ class TimeEntryView(View):
             }
             return JsonResponse(output_data, status=200)
 
-        return JsonResponse(NO_PERMISSION_DATA, status=404)
+        return JsonResponse(USER_NOT_FOUND_DATA, status=401)
