@@ -165,7 +165,7 @@ class ProjectEmployee(models.Model):
                                   default=0)
 
     def __str__(self):
-        return f"Работник {self.id}: User {self.user}"
+        return f"Работник {self.id}: User {self.user}, {self.project.name}"
 
 
 class HistoryAdvance(models.Model):
