@@ -22,11 +22,15 @@ class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
     def get(self, request):
         token = get_token(request)
         user = get_app_user_by_token(token=token)
-        flag_short = request.headers['short']
+        flag_short = request.headers['short'] if 'short' in request.headers else 'false'
+        flag_archived = request.headers['isArchived'] if 'isArchived' in request.headers else 'false'
 
         if user:
-            instance_output_list_of_dicts = get_short_output_projects_by_owner(
-                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner__full(owner=user)
+            if flag_short == 'true':
+                instance_output_list_of_dicts = get_short_output_projects_by_owner(owner=user, archived=flag_archived)
+            else:
+                instance_output_list_of_dicts = get_long_output_projects_by_owner__full(owner=user,
+                                                                                        archived=flag_archived)
 
             page_number = int(request.headers['X-Pagination-Current-Page'])
             count_in_page = int(request.headers['X-Pagination-Per-Page'])
@@ -43,17 +47,18 @@ class GetProjectsView(View):
     def get(self, request):
         token = get_token(request)
         user = get_app_user_by_token(token=token)
-        flag_short = request.headers['short']
+        flag_short = request.headers['short'] if 'short' in request.headers else 'false'
+        flag_archived = request.headers['isArchived'] if 'isArchived' in request.headers else 'false'
 
         if user:
-
-            instance_output_list_of_dicts = get_short_output_projects_by_owner(
-                owner=user) if flag_short == 'true' else get_long_output_projects_by_owner__full(owner=user)
-
+            if flag_short == 'true':
+                instance_output_list_of_dicts = get_short_output_projects_by_owner(owner=user, archived=flag_archived)
+            else:
+                instance_output_list_of_dicts = get_long_output_projects_by_owner__full(owner=user,
+                                                                                        archived=flag_archived)
             output_data = {
                 "projects": instance_output_list_of_dicts
             }
-
             return JsonResponse(output_data, status=200)
 
         else:

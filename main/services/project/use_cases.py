@@ -27,8 +27,8 @@ def get_full_output_project_data(project: Project, workers: list, roles: list) -
     return output_data
 
 
-def get_short_output_projects_by_owner(owner: AppUser) -> list:
-    projects = get_projects_by_owner(owner_project=owner)
+def get_short_output_projects_by_owner(owner: AppUser, archived) -> list:
+    projects = get_projects_by_owner(owner_project=owner, archived=archived)
     instance_output_list_of_dicts = []
     for project in projects:
         instance_output_list_of_dicts.append({'id': project.id,
@@ -54,8 +54,8 @@ def get_long_output_projects_by_owner(owner: AppUser) -> list:
     return instance_output_list_of_dicts
 
 
-def get_long_output_projects_by_owner__full(owner: AppUser) -> list:
-    projects = get_projects_by_owner(owner_project=owner)
+def get_long_output_projects_by_owner__full(owner: AppUser, archived) -> list:
+    projects = get_projects_by_owner(owner_project=owner, archived=archived)
     instance_output_list_of_dicts = []
     for project in projects:
         workers_output_list_of_dicts = get_pretty_view_workers_by_project(project=project)

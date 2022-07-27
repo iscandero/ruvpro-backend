@@ -1,8 +1,12 @@
 from main.models import AppUser, Project, ProjectEmployee
 
 
-def get_projects_by_owner(owner_project: AppUser):
-    return Project.objects.filter(owner=owner_project)
+def get_projects_by_owner(owner_project: AppUser, archived):
+    if archived == 'false' or archived is None:
+        is_archived = False
+    else:
+        is_archived = True
+    return Project.objects.filter(owner=owner_project, is_archived=is_archived)
 
 
 def get_projects_ids_by_owner(owner_project: AppUser):

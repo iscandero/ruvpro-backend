@@ -7,7 +7,11 @@ def is_sub_user(user: AppUser) -> bool:
 
 
 def get_app_user_by_token(token: str):
-    return AuthData.objects.filter(token_data=token).first().user
+    auth_data = AuthData.objects.filter(token_data=token).first()
+    if auth_data:
+        return auth_data.user
+    else:
+        return auth_data
 
 
 def is_exist_user_phone(phone: str):
