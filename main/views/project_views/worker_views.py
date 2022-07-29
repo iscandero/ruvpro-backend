@@ -15,7 +15,7 @@ from main.services.role.selectors import get_role_by_id
 from main.services.time_entry.selectors import get_time_entry_by_date_and_worker
 from main.services.user.selectors import get_app_user_by_token, get_avatar_path
 from main.services.work_with_date import convert_timestamp_to_date
-from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project
+from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project, get_workers_by_project
 from main.services.worker.use_cases import get_worker_output_data, get_full_worker_output_data, get_rate_by_worker
 
 
@@ -178,19 +178,37 @@ class TimeEntryView(View):
         user = get_app_user_by_token(token=token)
 
         if user:
-            worker_id = float(request.headers['workerId'])
             timestamp = float(request.headers['date'])
             date = convert_timestamp_to_date(timestamp)
-            worker = get_worker_by_id(worker_id=worker_id)
-            time_entry = get_time_entry_by_date_and_worker(worker=worker, date=date)
 
-            time_to_output = time_entry.work_time * 3600 if time_entry else 0
-            output_data = {
-                "date": timestamp,
-                "workTime": time_to_output,
-                "workerId": worker_id
-            }
-            return JsonResponse(output_data, status=200)
+            if 'workerId' in request.headers:
+                worker_id = int(request.headers['workerId'])
+                worker = get_worker_by_id(worker_id=worker_id)
+                time_entry = get_time_entry_by_date_and_worker(worker=worker, date=date)
+
+                time_to_output = time_entry.work_time * 3600 if time_entry else 0
+                output_data = {
+                    "date": timestamp,
+                    "workTime": time_to_output,
+                    "workerId": worker_id
+                }
+                return JsonResponse(output_data, status=200)
+
+            elif 'projectId' in request.headers:
+                project_id = int(request.headers['projectId'])
+                project = get_project_by_id(project_id=project_id)
+                workers = get_workers_by_project(project=project)
+                output_list = []
+                for worker in workers:
+                    time_entry = get_time_entry_by_date_and_worker(worker=worker, date=date)
+                    time_to_output = time_entry.work_time * 3600 if time_entry else 0
+                    output_list.append({
+                        "date": timestamp,
+                        "workTime": time_to_output,
+                        "workerId": worker.id,
+                    })
+                output_data = {'times': output_list}
+                return JsonResponse(output_data, status=200)
 
         return JsonResponse(NO_PERMISSION_DATA, status=404)
 

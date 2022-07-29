@@ -28,6 +28,8 @@ def get_pretty_view_workers_by_project(project: Project) -> list:
                                              'roleId': worker.role_id,
                                              'roleName': worker.role.name,
                                              'roleColor': worker.role.color,
+                                             'roleAmount': worker.role.amount,
+                                             'rolePercentage': worker.role.percentage,
                                              'salary': worker.salary,
                                              'workTime': worker.work_time * 3600,
                                              'avatar': avatar,
@@ -50,6 +52,8 @@ def get_worker_output_data(worker: ProjectEmployee):
         'projectId': worker.project.id,
         'roleName': worker.role.name,
         'roleColor': worker.role.color,
+        'roleAmount': worker.role.amount,
+        'rolePercentage': worker.role.percentage,
     }
     return output_data
 
@@ -76,6 +80,8 @@ def get_full_worker_output_data(worker: ProjectEmployee):
         'rate': get_rate_by_worker(worker=worker),
         'advance': worker.advance,
         'roleId': worker.role.id,
+        'roleAmount': worker.role.amount,
+        'rolePercentage': worker.role.percentage,
         'salary': worker.salary,
         'workTime': worker.work_time * 3600,
         'avatar': avatar,

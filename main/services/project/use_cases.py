@@ -87,6 +87,8 @@ def get_output_projects_by_member_and_owner(member: AppUser, owner: AppUser) -> 
                     'roleId': need_worker.role.id,
                     'roleName': need_worker.role.name,
                     'roleColor': need_worker.role.color,
+                    'roleAmount': need_worker.role.amount,
+                    'rolePercentage': need_worker.role.percentage,
                 }
             )
     return instance_output_data
@@ -109,6 +111,8 @@ def get_output_projects_by_member_and_willing(member: AppUser, willing: AppUser)
                     'roleId': need_worker.role.id,
                     'roleName': need_worker.role.name,
                     'roleColor': need_worker.role.color,
+                    'roleAmount': need_worker.role.amount,
+                    'rolePercentage': need_worker.role.percentage,
                 }
             )
     return instance_output_data
