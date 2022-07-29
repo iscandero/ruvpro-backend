@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from main.models import Role
+from main.validators import validate_currency
 
 
 class RoleSerializer(serializers.Serializer):
@@ -33,16 +34,27 @@ class RoleSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField()
-    bio = serializers.CharField(allow_null=True)
-    email = serializers.EmailField()
-    phone = serializers.CharField()
-    authority = serializers.IntegerField()
+    id = serializers.IntegerField(read_only=True, required=False)
+    name = serializers.CharField(required=False)
+    bio = serializers.CharField(allow_null=True, required=False)
+    email = serializers.EmailField(required=False)
+    phone = serializers.CharField(required=False)
+    authority = serializers.IntegerField(required=False)
+    currency = serializers.CharField(required=False, validators=[validate_currency])
 
     def update(self, instance, validated_data):
-        instance.email = validated_data.get('email', instance.email)
-        instance.name = validated_data.get('name', instance.name)
-        instance.name = validated_data.get('bio', instance.bio)
-        instance.save(update_fields=['email', 'name', 'bio'])
+        update_fields = []
+        if validated_data.get('email') is not None:
+            instance.email = validated_data.get('email', instance.email)
+            update_fields.append('email')
+        if validated_data.get('name') is not None:
+            instance.name = validated_data.get('name', instance.name)
+            update_fields.append('name')
+        if validated_data.get('bio') is not None:
+            instance.bio = validated_data.get('bio', instance.bio)
+            update_fields.append('bio')
+        if validated_data.get('currency') is not None:
+            instance.currency = validated_data.get('currency', instance.currency)
+            update_fields.append('currency')
+        instance.save(update_fields=update_fields)
         return instance
