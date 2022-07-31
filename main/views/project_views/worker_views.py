@@ -4,80 +4,55 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import UpdateAPIView, DestroyAPIView
+from rest_framework.response import Response
 
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
-from main.services.project.selectors import get_projects_by_owner, get_project_by_id
-from main.services.role.project_role.selectors import get_role_by_name_and_author_and_project, \
-    is_user_has_role_in_project
+from main.serializers.project_serializers import WorkerSerializer
+from main.services.project.selectors import get_project_by_id
 from main.services.role.selectors import get_role_by_id
 from main.services.time_entry.selectors import get_time_entry_by_date_and_worker
 from main.services.user.selectors import get_app_user_by_token, get_avatar_path
 from main.services.work_with_date import convert_timestamp_to_date
 from main.services.worker.selectors import get_worker_by_id, get_worker_by_user_role_project, get_workers_by_project
-from main.services.worker.use_cases import get_worker_output_data, get_full_worker_output_data, get_rate_by_worker
+from main.services.worker.use_cases import get_full_worker_output_data, get_rate_by_worker
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class WorkerViewWithIndexInEnd(View):
-    def delete(self, request, worker_id):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
+class UpdateDestroyAPIViewWorkerAPIView(UpdateAPIView, DestroyAPIView):
+    queryset = ProjectEmployee.objects.all()
+    serializer_class = WorkerSerializer
 
+    def destroy(self, request, *args, **kwargs):
+        user = get_app_user_by_token(token=get_token(request))
         if user:
-            projects = get_projects_by_owner(owner_project=user)
-
+            worker_id = kwargs.get('pk')
             worker = get_worker_by_id(worker_id=worker_id)
+            instance = self.get_object()
+            if worker.project.owner == user:
+                self.perform_destroy(instance)
+                return Response(DELETE_SUCCESS_DATA, status=200)
+            else:
+                return Response(NO_PERMISSION_DATA, status=404)
 
-            project_with_need_worker = None
-            for i in projects:
-                if worker.project == i:
-                    project_with_need_worker = i
-                    break
+        return Response(USER_NOT_FOUND_DATA, status=401)
 
-            if project_with_need_worker is not None:
-                worker.delete()
-                return JsonResponse(DELETE_SUCCESS_DATA, status=200)
+    def put(self, request, *args, **kwargs):
+        return Response(status=204)
+
+    def patch(self, request, *args, **kwargs):
+        user = get_app_user_by_token(token=get_token(request))
+        if user:
+            worker_id = kwargs.get('pk')
+            worker = get_worker_by_id(worker_id=worker_id)
+            if worker.project.owner == user:
+                return self.partial_update(request, *args, **kwargs)
 
             else:
-                return JsonResponse(NO_PERMISSION_DATA, status=404)
+                return Response(NO_PERMISSION_DATA, status=404)
 
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
-
-    def patch(self, request, worker_id):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
-
-        if user:
-            worker = get_worker_by_id(worker_id=worker_id)
-            project = worker.project
-
-            if project.owner == user:
-                post_body = json.loads(request.body)
-
-                role_id = post_body.get('role_id')
-
-                if role_id is not None:
-                    role = get_role_by_id(role_id=role_id)
-
-                    if role:
-                        worker.role = role
-                        worker.save(update_fields=['role'])
-
-                    else:
-                        return JsonResponse(ROLE_NOT_FOUND_DATA, status=404)
-
-                output_data = get_worker_output_data(worker)
-
-                return JsonResponse(output_data, status=200)
-
-            else:
-                return JsonResponse(NO_PERMISSION_DATA, status=404)
-
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=404)
+        return Response(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

@@ -22,7 +22,6 @@ def calculate_salary_signal(sender, created, instance, update_fields, **kwargs):
             project = instance
         if sender == Role or sender == ProjectEmployee:
             project = instance.project
-
         workers = get_workers_by_project(project=project)
         if workers is not None:
             for worker in workers:

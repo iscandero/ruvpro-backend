@@ -180,7 +180,7 @@ class ProjectEmployee(models.Model):
                                default=0)
     work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=True,
                                   default=0)
-
+    
     def __str__(self):
         return f"Работник {self.id}: User {self.user}, {self.project.name}"
 
