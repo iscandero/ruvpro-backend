@@ -1,6 +1,21 @@
 from django.db import models
 
 from main.const_data.currency_codes import currency_list
+from main.const_data.social_network_names import social_networks_list
+
+
+class SocialNetworks(models.Model):
+    class Meta:
+        verbose_name = "Соц. сеть"
+        verbose_name_plural = "Соц. сети"
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    name = models.CharField(verbose_name="Название", null=False, unique=False, blank=False, max_length=255,
+                            choices=social_networks_list)
+    url = models.TextField(verbose_name="URL", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} {self.url}"
 
 
 class AppUser(models.Model):
@@ -26,6 +41,8 @@ class AppUser(models.Model):
                                       default=True)
     currency = models.CharField(verbose_name='Валюта', null=True, blank=True, choices=currency_list, default='RUB',
                                 max_length=3)
+
+    socials = models.ManyToManyField(to=SocialNetworks, verbose_name="Соц. Сети", related_name='socials')
 
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"
@@ -237,8 +254,7 @@ class Team(models.Model):
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     owner = models.OneToOneField(to=AppUser, verbose_name="ID Создателя", null=False, blank=False, related_name='owner',
                                  on_delete=models.CASCADE)
-    participants = models.ManyToManyField(to=AppUser, verbose_name="Участники команды", null=True, blank=True,
-                                          related_name='participants')
+    participants = models.ManyToManyField(to=AppUser, verbose_name="Участники команды", related_name='participants')
 
     def __str__(self):
         return f"Команда {self.id}"

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from main.models import Role
-from main.validators import validate_currency
+from main.models import Role, SocialNetworks, AppUser
 
 
 class RoleSerializer(serializers.Serializer):
@@ -33,14 +32,45 @@ class RoleSerializer(serializers.Serializer):
         return instance
 
 
-class UserSerializer(serializers.Serializer):
+class SocialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialNetworks
+        fields = ('name', 'url')
+
+
+class CurrencyUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppUser
+        fields = ('currency',)
+
+
+class UserSerializerForOutput(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+    social = SocialSerializer(many=True, source='socials')
+
+    class Meta:
+        model = AppUser
+        fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social')
+
+    def get_avatar(self, user):
+        request = self.context.get('request')
+        avatar = user.avatar
+        if avatar:
+            avatar_url = avatar.url
+            return request.build_absolute_uri(avatar_url)
+
+        return None
+
+
+class UserSerializerForUpdate(serializers.Serializer):
     id = serializers.IntegerField(read_only=True, required=False)
     name = serializers.CharField(required=False)
     bio = serializers.CharField(allow_null=True, required=False)
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False)
     authority = serializers.IntegerField(required=False)
-    currency = serializers.CharField(required=False, validators=[validate_currency])
+    currency = serializers.CharField(required=False)
+    social = SocialSerializer(many=True, required=False, source='socials')
 
     def update(self, instance, validated_data):
         update_fields = []
@@ -56,5 +86,22 @@ class UserSerializer(serializers.Serializer):
         if validated_data.get('currency') is not None:
             instance.currency = validated_data.get('currency', instance.currency)
             update_fields.append('currency')
+        if validated_data.get('authority') is not None:
+            instance.currency = validated_data.get('authority', instance.authority)
+            update_fields.append('authority')
+
+        socials = validated_data.get('socials')
+        if socials is not None:
+            for social in socials:
+                social_name = social['name']
+                social_url = social['url']
+                if social_name in instance.socials.values_list('name', flat=True):
+                    need_social = instance.socials.get(name=social_name)
+                    need_social.url = social_url
+                    need_social.save()
+                else:
+                    new_social = SocialNetworks.objects.create(name=social_name, url=social_url)
+                    instance.socials.add(new_social)
+
         instance.save(update_fields=update_fields)
         return instance

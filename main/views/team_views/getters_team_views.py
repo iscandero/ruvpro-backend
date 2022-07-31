@@ -1,74 +1,53 @@
-from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
 
 from main.const_data.template_errors import *
 from main.parsers import *
-from main.services.project.use_cases import get_output_projects_by_member_and_owner, \
-    get_output_projects_by_member_and_willing
-from main.services.social.use_cases import get_social_output_list_by_user
-from main.services.team.selectors import get_team_by_owner, is_user_in_team
+from main.serializers.team_serializers import TeamWorkerSerializer
+from main.serializers.user_serializers import UserSerializerForOutput
+from main.services.team.selectors import get_team_by_owner
 from main.services.user.selectors import get_app_user_by_token, get_app_user_by_id
-from main.services.user.use_cases import get_app_user_output_data_with_social_list, \
-    get_full_app_user_output_data_with_willing
+from main.services.worker.selectors import get_workers_by_user_and_willing
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class GetUsersByTeam(View):
-    def get(self, request):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
+class GetUsersByTeam(ListAPIView):
+    serializer_class = UserSerializerForOutput
 
+    def list(self, request, *args, **kwargs):
+        user = get_app_user_by_token(token=get_token(request))
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        if 'projects' in request.headers:
+            for teammate in serializer.data:
+                user_id = get_app_user_by_id(id=teammate['id'])
+                teammate['projects'] = TeamWorkerSerializer(
+                    get_workers_by_user_and_willing(user=user_id, willing=user), many=True).data
+
+        return Response({'teammates': serializer.data})
+
+    def get(self, request, *args, **kwargs):
+        user = get_app_user_by_token(token=get_token(request))
         if user:
-            if user.authority == 1:
-                team = get_team_by_owner(owner=user)
-                output_list = []
-                participants = team.participants.all()
+            self.queryset = get_team_by_owner(owner=user).participants
+            return self.list(request, *args, **kwargs)
 
-                if participants is not None:
-                    if 'projects' in request.headers:
-                        for participant in participants:
-                            social_list = get_social_output_list_by_user(user=participant)
-                            output_list.append(
-                                get_full_app_user_output_data_with_willing(user=participant, social_list=social_list,
-                                                                           willing=user))
-                    else:
-                        for participant in participants:
-                            social_list = get_social_output_list_by_user(user=participant)
-                            output_list.append(
-                                get_app_user_output_data_with_social_list(user=participant, social_list=social_list))
-
-                output_data = {
-                    "teammates": output_list
-                }
-
-                return JsonResponse(output_data, status=200)
-
-            else:
-                return JsonResponse(NO_PERMISSION_DATA, status=404)
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+        return Response(USER_NOT_FOUND_DATA, status=401)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class GetProjectsByTeamUser(View):
-    def get(self, request, user_id):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
+class GetProjectsByTeamUser(ListAPIView):
+    serializer_class = TeamWorkerSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'projects': serializer.data})
+
+    def get(self, request, *args, **kwargs):
+        user = get_app_user_by_token(token=get_token(request))
         if user:
-            need_to_view_user = get_app_user_by_id(id=user_id)
-            if need_to_view_user:
+            user_id = kwargs.get('user_id', None)
+            need_user = get_app_user_by_id(id=user_id)
+            self.queryset = get_workers_by_user_and_willing(user=need_user, willing=user)
+            return self.list(request, *args, **kwargs)
 
-                output_data = {
-                    "projects": get_output_projects_by_member_and_willing(member=need_to_view_user, willing=user)
-                }
-
-                return JsonResponse(output_data, status=200)
-
-            else:
-                return JsonResponse(USER_NOT_FOUND_DATA, status=404)
-
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+        return Response(USER_NOT_FOUND_DATA, status=401)

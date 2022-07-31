@@ -27,3 +27,5 @@ admin.site.register(HistoryWorker)
 admin.site.register(HistoryProject)
 
 admin.site.register(AuthData)
+
+admin.site.register(SocialNetworks)
