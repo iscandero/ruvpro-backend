@@ -62,32 +62,6 @@ class AuthData(models.Model):
         return f"Auth data user - {self.user.name}"
 
 
-class SocialNetwork(models.Model):
-    class Meta:
-        verbose_name = "Социальная сеть"
-        verbose_name_plural = "Социальные сети"
-
-    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    name = models.CharField(verbose_name="Название соц.сети", unique=True, max_length=255)
-
-    def __str__(self):
-        return f"Соц.сеть {self.id}: {self.name}"
-
-
-class Social(models.Model):
-    class Meta:
-        verbose_name = "Связь пользователя и социальной сети"
-        verbose_name_plural = "Связи пользователей и социальных сетей"
-
-    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    social_network = models.ForeignKey(to=SocialNetwork, verbose_name="ID соц.сети", on_delete=models.CASCADE)
-    url = models.TextField(verbose_name="URL", null=True, blank=True)
-
-    def __str__(self):
-        return f"Соц.сеть {self.social_network.id}: {self.social_network.name} - Пользователь {self.user}"
-
-
 class Project(models.Model):
     class Meta:
         verbose_name = "Проект"
@@ -160,7 +134,7 @@ class Role(models.Model):
 
     # не null, если роль - проектная
     project = models.ForeignKey(to=Project, verbose_name='Проект, которому принадлежит роль', null=True, blank=True,
-                                on_delete=models.CASCADE)
+                                on_delete=models.CASCADE, related_name='roles')
 
     def __str__(self):
         return f"Роль {self.id}: {self.name}"
@@ -173,14 +147,15 @@ class ProjectEmployee(models.Model):
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
     user = models.ForeignKey(to=AppUser, verbose_name="ID Пользователя", on_delete=models.CASCADE)
-    project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE)
+    project = models.ForeignKey(to=Project, verbose_name="ID Проекта", on_delete=models.CASCADE, related_name='workers')
     role = models.ForeignKey(to=Role, verbose_name="ID Роли пользователя", on_delete=models.CASCADE)
     advance = models.FloatField(verbose_name="Размер аванса", null=False, blank=False, unique=False, default=0)
     salary = models.FloatField(verbose_name="Размер зп, считается автоматически", null=True, blank=True, unique=False,
                                default=0)
     work_time = models.FloatField(verbose_name="Суммарное рабочее время", unique=False, null=True, blank=True,
                                   default=0)
-    
+    rate = models.FloatField(verbose_name="Ставка в час", unique=False, null=False, blank=True, default=0)
+
     def __str__(self):
         return f"Работник {self.id}: User {self.user}, {self.project.name}"
 
@@ -191,7 +166,7 @@ class HistoryAdvance(models.Model):
         verbose_name_plural = "Авансы работников"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    date = models.DateField(verbose_name='Дата выдачи', null=True, blank=True)
+    date = models.DateField(verbose_name='Дата выдачи (timestamp)', null=True, blank=True)
     employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
     advance = models.FloatField(verbose_name="Размер аванса", null=True, blank=True, unique=False, default=0)
 
@@ -205,9 +180,10 @@ class TimeEntry(models.Model):
         verbose_name_plural = "Рабочие времена работников"
 
     id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
-    initiator = models.ForeignKey(to=AppUser, verbose_name="ID Инициатора", unique=False, on_delete=models.CASCADE)
+    initiator = models.ForeignKey(to=AppUser, verbose_name="ID Инициатора", unique=False, null=True, blank=True,
+                                  on_delete=models.CASCADE)
     employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
-    date = models.DateField(verbose_name="Дата", unique=False, null=False,
+    date = models.DateField(verbose_name="Дата (timestamp)", unique=False, null=False,
                             blank=False)
     work_time = models.FloatField(verbose_name="Выданное рабочее время", unique=False, null=False, blank=False)
 

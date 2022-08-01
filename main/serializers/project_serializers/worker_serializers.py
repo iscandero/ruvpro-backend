@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
 from main.models import ProjectEmployee, Role
+from main.services.project.selectors import get_project_by_id
 from main.services.role.selectors import get_all_project_roles, get_role_by_id
+from main.services.user.selectors import get_all_users
 from main.services.worker.use_cases import get_rate_by_worker
 
 
@@ -18,7 +20,6 @@ class ImageUrlField(serializers.RelatedField):
 
 class WorkerSerializer(serializers.ModelSerializer):
     userId = serializers.PrimaryKeyRelatedField(read_only=True, source='user')
-    rate = serializers.SerializerMethodField()
     avatar = ImageUrlField(read_only=True, source='user')
     roleId = serializers.PrimaryKeyRelatedField(source='role',
                                                 queryset=get_all_project_roles())
@@ -50,19 +51,32 @@ class WorkerSerializer(serializers.ModelSerializer):
         source='role'
     )
 
-    def get_rate(self, instance):
-        return get_rate_by_worker(worker=instance)
-
     def get_workTime(self, instance):
         return instance.work_time * 3600
 
     class Meta:
         model = ProjectEmployee
-        fields = ('id', 'userId', 'rate', 'roleId', 'workTime', 'avatar', 'name', 'projectId',
+        fields = ('id', 'userId', 'rate', 'advance', 'salary', 'roleId', 'workTime', 'avatar', 'name', 'projectId',
                   'roleName', 'roleColor', 'roleAmount', 'rolePercentage',)
-        read_only_fields = ('advance', 'salary')
 
     def update(self, instance, validated_data):
         instance.role = validated_data.get('role')
         instance.save(update_fields=['role'])
         return instance
+
+
+class WorkerSerializerToCreate(serializers.ModelSerializer):
+    userId = serializers.PrimaryKeyRelatedField(source='user', queryset=get_all_users())
+    roleId = serializers.PrimaryKeyRelatedField(source='role',
+                                                queryset=get_all_project_roles())
+
+    class Meta:
+        model = ProjectEmployee
+        fields = ('userId', 'roleId')
+
+    def create(self, validated_data):
+        user = validated_data.get('user', None)
+        role = validated_data.get('role', None)
+        if user is not None and role is not None:
+            project = validated_data.get('project')
+            return ProjectEmployee.objects.create(user=user, role=role, project=project)

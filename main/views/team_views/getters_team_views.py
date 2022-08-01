@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 
@@ -23,7 +24,7 @@ class GetUsersByTeam(ListAPIView):
                 teammate['projects'] = TeamWorkerSerializer(
                     get_workers_by_user_and_willing(user=user_id, willing=user), many=True).data
 
-        return Response({'teammates': serializer.data})
+        return Response({'teammates': serializer.data}, status=status.HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
         user = get_app_user_by_token(token=get_token(request))
@@ -31,7 +32,7 @@ class GetUsersByTeam(ListAPIView):
             self.queryset = get_team_by_owner(owner=user).participants
             return self.list(request, *args, **kwargs)
 
-        return Response(USER_NOT_FOUND_DATA, status=401)
+        return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class GetProjectsByTeamUser(ListAPIView):
@@ -40,7 +41,7 @@ class GetProjectsByTeamUser(ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'projects': serializer.data})
+        return Response({'projects': serializer.data}, status=status.HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
         user = get_app_user_by_token(token=get_token(request))
@@ -50,4 +51,4 @@ class GetProjectsByTeamUser(ListAPIView):
             self.queryset = get_workers_by_user_and_willing(user=need_user, willing=user)
             return self.list(request, *args, **kwargs)
 
-        return Response(USER_NOT_FOUND_DATA, status=401)
+        return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

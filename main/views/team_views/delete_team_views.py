@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from main.const_data.template_errors import *
@@ -13,5 +14,5 @@ class DeleteUserByTeam(APIView):
             user_to_delete_from_team = get_app_user_by_id(id=user_id)
             team = get_team_by_owner(owner=user)
             team.participants.remove(user_to_delete_from_team)
-            return Response(SUCCESS_DATA, status=200)
-        return Response(USER_NOT_FOUND_DATA, status=401)
+            return Response(DELETE_SUCCESS_DATA, status=status.HTTP_200_OK)
+        return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

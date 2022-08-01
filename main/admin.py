@@ -8,15 +8,11 @@ admin.site.register(ProjectEmployee)
 
 admin.site.register(ProjectTimeEntryHistory)
 
-admin.site.register(SocialNetwork)
-
 admin.site.register(Team)
 
 admin.site.register(AppUser)
 
 admin.site.register(TimeEntry)
-
-admin.site.register(Social)
 
 admin.site.register(Role)
 

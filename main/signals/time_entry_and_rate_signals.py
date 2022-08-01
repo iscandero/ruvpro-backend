@@ -6,6 +6,7 @@ from main.services.project.use_cases import get_budget_without_additional_income
     update_roles_time_in_project_by_worker, subtract_work_time_from_project_by_worker
 from main.services.time_entry.use_cases import get_sum_work_time_by_workers, get_sum_work_time_by_worker
 from main.services.worker.selectors import get_ids_workers_by_project
+from main.services.worker.use_cases import get_rate_by_worker
 
 
 @receiver(post_save, sender=TimeEntry)
@@ -45,3 +46,10 @@ def calculate_project_time_data_from_delete_worker(sender, instance, **kwargs):
     budget_without_additional_income = get_budget_without_additional_income_in_project(project=project)
     project.average_rate = budget_without_additional_income / project_work_time if project_work_time != 0 else 0
     project.save(update_fields=['average_rate'])
+
+
+@receiver(post_save, sender=TimeEntry)
+def calculate_worker_rate(sender, instance, **kwargs):
+    worker = instance.employee
+    worker.rate = get_rate_by_worker(worker=worker)
+    worker.save(update_fields=['rate'])

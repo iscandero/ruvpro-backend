@@ -21,7 +21,7 @@ def get_projects_ids_by_owner_or_member(owner_or_member_project: AppUser):
 
 
 def get_project_by_id(project_id: int):
-    return Project.objects.filter(id=project_id).first()
+    return Project.objects.get(id=project_id)
 
 
 def get_all_project_ids_list_by_owner_projects(owner_projects: AppUser) -> list:

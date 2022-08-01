@@ -50,3 +50,7 @@ def get_workers_by_user_and_willing(user: AppUser, willing: AppUser):
     """
     projects_ids = get_projects_ids_by_owner_or_member(owner_or_member_project=willing)
     return get_workers_by_user_and_projects_ids(user=user, projects_ids=projects_ids)
+
+
+def get_all_workers():
+    return ProjectEmployee.objects.all()

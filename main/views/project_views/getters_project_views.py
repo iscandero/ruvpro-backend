@@ -4,9 +4,15 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from main.const_data.template_errors import *
+from main.models import Project
+from main.pagination import ProjectPagination
 from main.parsers import *
+from main.serializers.project_serializers.project_serializers import ProjectSerializer
 from main.services.project.selectors import get_project_by_id
 from main.services.project.use_cases import get_full_output_project_data, get_short_output_projects_by_owner, \
     get_long_output_projects_by_owner, get_long_output_projects_by_owner__full
@@ -17,29 +23,34 @@ from main.services.worker.use_cases import get_pretty_view_workers_by_project
 from main.views.template_paginate_view import ViewPaginatorMixin
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
-    def get(self, request):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
-        flag_short = request.headers['short'] if 'short' in request.headers else 'false'
-        flag_archived = request.headers['isArchived'] if 'isArchived' in request.headers else 'false'
+class GetProjectsWithPaginateView(ListAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    pagination_class = ProjectPagination
 
-        if user:
-            if flag_short == 'true':
-                instance_output_list_of_dicts = get_short_output_projects_by_owner(owner=user, archived=flag_archived)
-            else:
-                instance_output_list_of_dicts = get_long_output_projects_by_owner__full(owner=user,
-                                                                                        archived=flag_archived)
-
-            page_number = int(request.headers['X-Pagination-Current-Page'])
-            count_in_page = int(request.headers['X-Pagination-Per-Page'])
-
-            return JsonResponse(self.paginate(instance_output_list_of_dicts, page_number, count_in_page, 'projects'),
-                                status=200)
-
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+# @method_decorator(csrf_exempt, name='dispatch')
+# class GetProjectsWithPaginateView(ViewPaginatorMixin, View):
+#     def get(self, request):
+#         token = get_token(request)
+#         user = get_app_user_by_token(token=token)
+#         flag_short = request.headers['short'] if 'short' in request.headers else 'false'
+#         flag_archived = request.headers['isArchived'] if 'isArchived' in request.headers else 'false'
+#
+#         if user:
+#             if flag_short == 'true':
+#                 instance_output_list_of_dicts = get_short_output_projects_by_owner(owner=user, archived=flag_archived)
+#             else:
+#                 instance_output_list_of_dicts = get_long_output_projects_by_owner__full(owner=user,
+#                                                                                         archived=flag_archived)
+#
+#             page_number = int(request.headers['X-Pagination-Current-Page'])
+#             count_in_page = int(request.headers['X-Pagination-Per-Page'])
+#
+#             return JsonResponse(self.paginate(instance_output_list_of_dicts, page_number, count_in_page, 'projects'),
+#                                 status=200)
+#
+#         else:
+#             return JsonResponse(USER_NOT_FOUND_DATA, status=401)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

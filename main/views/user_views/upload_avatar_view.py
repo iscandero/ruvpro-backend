@@ -27,6 +27,6 @@ class UploadAvatar(View):
                 }
                 return JsonResponse(output_data, status=200)
             else:
-                return JsonResponse(NO_FILE_DATA, status=404)
+                return JsonResponse(NO_FILE_DATA, status=400)
         else:
             return JsonResponse(USER_NOT_FOUND_DATA, status=401)

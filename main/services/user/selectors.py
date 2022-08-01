@@ -36,3 +36,7 @@ def get_app_user_by_email(email: str):
 
 def get_no_register_app_user_by_email(email: str):
     return AppUser.objects.filter(email=email, is_register=False).first()
+
+
+def get_all_users():
+    return AppUser.objects.all()
