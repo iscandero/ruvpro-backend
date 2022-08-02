@@ -11,13 +11,16 @@ from main.services.user.selectors import get_app_user_by_token
 
 class ProjectsListAPIView(ListAPIView):
     serializer_class = ProjectSerializerLong
-    pagination_class = ProjectPagination
 
     def list(self, request, *args, **kwargs):
         user = get_app_user_by_token(token=get_token(request))
         if user:
             if request.headers.get('short', None) == 'true':
                 self.serializer_class = ProjectSerializerShort
+
+            paginate = request.headers.get('paginate', None)
+            if paginate is not None:
+                self.pagination_class = ProjectPagination
 
             flag_archived = request.headers.get('isArchived', 'false')
             queryset = get_projects_by_owner(owner_project=user, archived=flag_archived)
@@ -28,7 +31,8 @@ class ProjectsListAPIView(ListAPIView):
                 return self.get_paginated_response(serializer.data)
 
             serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            output_data = {'projects': serializer.data} if paginate is None else serializer.data
+            return Response(output_data, status=status.HTTP_200_OK)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
