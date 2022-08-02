@@ -19,7 +19,7 @@ class ProjectsListAPIView(ListAPIView):
             if request.headers.get('short', None) == 'true':
                 self.serializer_class = ProjectSerializerShort
 
-            flag_archived = request.headers.get('isArchived', False)
+            flag_archived = request.headers.get('isArchived', 'false')
             queryset = get_projects_by_owner(owner_project=user, archived=flag_archived)
 
             page = self.paginate_queryset(queryset)

@@ -11,7 +11,7 @@ from main.services.role.selectors import get_role_by_id
 class ProjectSerializerLong(serializers.ModelSerializer):
     workers = WorkerSerializer(many=True, read_only=True)
     roles = RoleSerializer(many=True)
-    isArchived = serializers.BooleanField(source='is_archived')
+    isArchived = serializers.BooleanField(source='is_archived', required=False)
     workTime = serializers.FloatField(source='work_time')
     averageRate = serializers.FloatField(source='average_rate')
     differenceTimeEntry = serializers.SerializerMethodField()
