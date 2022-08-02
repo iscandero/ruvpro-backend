@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from main.const_data.template_errors import *
 from main.parsers import *
-from main.serializers.user_serializers import UserSerializerForOutput, UserSerializerForUpdate
+from main.serializers.user_serializers.user_serializers import UserSerializerForOutput, UserSerializerForUpdate
 from main.services.user.selectors import get_app_user_by_token
 
 

@@ -12,6 +12,7 @@ def get_projects_by_owner(owner_project: AppUser, archived=None):
 
     return Project.objects.filter(owner=owner_project)
 
+
 def get_projects_ids_by_owner(owner_project: AppUser):
     return list(Project.objects.filter(owner=owner_project).values_list('id', flat=True))
 
@@ -29,3 +30,7 @@ def get_project_by_id(project_id: int):
 
 def get_all_project_ids_list_by_owner_projects(owner_projects: AppUser) -> list:
     return list(Project.objects.filter(owner=owner_projects).values_list('id', flat=True))
+
+
+def get_all_project():
+    return Project.objects.all()

@@ -7,3 +7,4 @@ def get_role_by_id(role_id: int):
 
 def get_all_project_roles():
     return Role.objects.exclude(project=None)
+

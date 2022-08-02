@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from main.const_data.template_errors import *
 from main.parsers import *
 from main.serializers.team_serializers import TeamWorkerSerializer
-from main.serializers.user_serializers import UserSerializerForOutput
+from main.serializers.user_serializers.user_serializers import UserSerializerForOutput
 from main.services.team.selectors import get_team_by_owner
 from main.services.user.selectors import get_app_user_by_token, get_app_user_by_id
 from main.services.worker.selectors import get_workers_by_user_and_willing

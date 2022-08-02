@@ -1,5 +1,5 @@
 from main.const_data.serv_info import SERV_NAME
-from main.models import AppUser, ProjectEmployee, AuthData
+from main.models import AppUser, ProjectEmployee, AuthData, FileUser
 
 
 def is_sub_user(user: AppUser) -> bool:
@@ -40,3 +40,7 @@ def get_no_register_app_user_by_email(email: str):
 
 def get_all_users():
     return AppUser.objects.all()
+
+
+def get_all_files():
+    return FileUser.objects.all()

@@ -8,6 +8,6 @@ urlpatterns = [
         path('user/settings', user_setting_views.SettingsAPIView.as_view()),
         path('user/settings/<int:role_id>', user_setting_views.UserViewForIndexInEnd.as_view()),
         path('user/settings/currency', user_setting_views.UserSettingsCurrencyView.as_view()),
-        path('file/upload', upload_avatar_view.UploadAvatar.as_view()),
+        path('file/upload', upload_avatar_view.UploadFile.as_view()),
     ]))
 ]

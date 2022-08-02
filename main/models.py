@@ -33,8 +33,7 @@ class AppUser(models.Model):
     email = models.EmailField(verbose_name="email пользователя", unique=True, null=False, blank=False,
                               default='admin@admin.com')
     phone = models.CharField(verbose_name="Телефон пользователя", null=True, blank=False, max_length=255)
-    avatar = models.ImageField(verbose_name="Аватар пользователя", upload_to=user_avatar_path, null=True,
-                               blank=True)
+    avatar = models.URLField(verbose_name="Аватар пользователя (Путь)", null=True, blank=True)
     bio = models.TextField(verbose_name="Биография пользователя", null=True, blank=True)
     authority = models.IntegerField(verbose_name="Полномочия пользователя", null=False, blank=False, unique=False)
     is_register = models.BooleanField(verbose_name='Флаг зарегистрированого пользователя', null=False, blank=False,
@@ -42,10 +41,22 @@ class AppUser(models.Model):
     currency = models.CharField(verbose_name='Валюта', null=True, blank=True, choices=currency_list, default='RUB',
                                 max_length=3)
 
-    socials = models.ManyToManyField(to=SocialNetworks, verbose_name="Соц. Сети", related_name='socials')
+    socials = models.ManyToManyField(to=SocialNetworks, verbose_name="Соц. Сети", related_name='socials', blank=True)
 
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"
+
+
+class FileUser(models.Model):
+    class Meta:
+        verbose_name = "Файл пользователя"
+        verbose_name_plural = "Файлы пользователей"
+
+    user = models.ForeignKey(to=AppUser, verbose_name="Пользователь", on_delete=models.CASCADE)
+    file = models.ImageField(verbose_name="Файл", upload_to='users_files')
+
+    def __str__(self):
+        return f"Загрука {self.id}: {self.user.name}"
 
 
 class AuthData(models.Model):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
-
 from main.models import Role, SocialNetworks, AppUser
+
 
 
 class RoleSerializer(serializers.Serializer):
@@ -44,21 +44,21 @@ class CurrencyUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializerForOutput(serializers.ModelSerializer):
-    avatar = serializers.SerializerMethodField()
+    # avatar = serializers.SerializerMethodField()
     social = SocialSerializer(many=True, source='socials')
 
     class Meta:
         model = AppUser
         fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social')
 
-    def get_avatar(self, user):
-        request = self.context.get('request')
-        avatar = user.avatar
-        if avatar:
-            avatar_url = avatar.url
-            return request.build_absolute_uri(avatar_url)
-
-        return None
+    # def get_avatar(self, user):
+    #     request = self.context.get('request')
+    #     avatar = user.avatar
+    #     if avatar:
+    #         avatar_url = avatar.url
+    #         return request.build_absolute_uri(avatar_url)
+    #
+    #     return None
 
 
 class UserSerializerForUpdate(serializers.Serializer):
@@ -69,6 +69,7 @@ class UserSerializerForUpdate(serializers.Serializer):
     phone = serializers.CharField(required=False)
     authority = serializers.IntegerField(required=False)
     currency = serializers.CharField(required=False)
+    avatar = serializers.URLField()
     social = SocialSerializer(many=True, required=False, source='socials')
 
     def update(self, instance, validated_data):
@@ -86,8 +87,11 @@ class UserSerializerForUpdate(serializers.Serializer):
             instance.currency = validated_data.get('currency', instance.currency)
             update_fields.append('currency')
         if validated_data.get('authority') is not None:
-            instance.currency = validated_data.get('authority', instance.authority)
+            instance.authority = validated_data.get('authority', instance.authority)
             update_fields.append('authority')
+        if validated_data.get('avatar'):
+            instance.avatar = validated_data.get('avatar', instance.avatar)
+            update_fields.append('avatar')
 
         socials = validated_data.get('socials')
         if socials is not None:

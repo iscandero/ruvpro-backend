@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from main.const_data.template_errors import *
 from main.parsers import *
-from main.serializers.user_serializers import RoleSerializer, CurrencyUserSerializer
+from main.serializers.user_serializers.user_serializers import RoleSerializer, CurrencyUserSerializer
 from main.services.role.base_role.selectors import get_all_base_roles_by_author
 from main.services.role.selectors import get_role_by_id
 from main.services.user.selectors import get_app_user_by_token

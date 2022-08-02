@@ -7,20 +7,21 @@ from main.services.user.selectors import get_all_users
 from main.services.worker.use_cases import get_rate_by_worker
 
 
-class ImageUrlField(serializers.RelatedField):
-    def to_representation(self, instance):
-        if instance.avatar:
-            url = instance.avatar.url
-        else:
-            return None
-
-        request = self.context.get('request', None)
-        return request.build_absolute_uri(url)
+# class ImageUrlField(serializers.RelatedField):
+#     def to_representation(self, instance):
+#         if instance.avatar:
+#             url = instance.avatar.url
+#         else:
+#             return None
+#
+#         request = self.context.get('request', None)
+#         return request.build_absolute_uri(url)
 
 
 class WorkerSerializer(serializers.ModelSerializer):
     userId = serializers.PrimaryKeyRelatedField(read_only=True, source='user')
-    avatar = ImageUrlField(read_only=True, source='user')
+    # avatar = ImageUrlField(read_only=True, source='user')
+    avatar = serializers.SlugRelatedField(slug_field='avatar', source='user', read_only=True)
     roleId = serializers.PrimaryKeyRelatedField(source='role',
                                                 queryset=get_all_project_roles())
     workTime = serializers.SerializerMethodField()

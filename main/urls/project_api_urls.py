@@ -3,7 +3,7 @@ from django.urls import path
 from main.views.project_views import base_project_views, getters_and_patch_project_views, worker_views
 
 urlpatterns = [
-    path('api/project', base_project_views.ProjectView.as_view()),
+    path('api/project', base_project_views.ProjectCreateAPIView.as_view()),
     path('api/project/time-entry', worker_views.TimeEntryGetCreateAPIView.as_view()),
     path('api/workers/<int:pk>', worker_views.UpdateDestroyAPIViewWorkerAPIView.as_view()),
     path('api/project/<int:project_id>/worker', worker_views.AddWorkerAPIView.as_view()),

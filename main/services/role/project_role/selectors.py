@@ -18,3 +18,7 @@ def get_role_by_project_and_name(project: Project, role_name: str):
 
 def get_roles_by_project(project: Project):
     return Role.objects.filter(project=project)
+
+
+def get_role_by_name_and_project(name: str, project: Project):
+    return Role.objects.filter(name=name, project=project).get()

@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from main.models import Project
 from main.serializers.project_serializers.worker_serializers import WorkerSerializer
-from main.serializers.user_serializers import RoleSerializer
+from main.serializers.user_serializers.user_serializers import RoleSerializer
 from main.services.history_work_time_project.interactors import write_project_time_entry_to_history_table
 from main.services.history_work_time_project.use_cases import get_difference_project_work_time
 from main.services.role.selectors import get_role_by_id

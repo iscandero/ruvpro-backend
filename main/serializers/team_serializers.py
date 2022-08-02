@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from main.models import ProjectEmployee, AppUser, Team
-from main.serializers.user_serializers import UserSerializerForOutput, SocialSerializer
+from main.serializers.user_serializers.user_serializers import UserSerializerForOutput, SocialSerializer
 from main.services.team.selectors import get_team_by_owner
 from main.services.user.selectors import get_app_user_by_email, get_app_user_by_id
 
