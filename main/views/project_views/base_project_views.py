@@ -4,11 +4,15 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.generics import UpdateAPIView
+from rest_framework.response import Response
 
 from main.const_data.template_errors import *
 from main.models import *
 from main.parsers import *
-from main.services.project.selectors import get_project_by_id
+from main.serializers.project_serializers.project_serializers import ProjectSetCompleteSerializer
+from main.services.project.selectors import get_projects_by_owner
 from main.services.project.use_cases import get_full_output_project_data
 from main.services.role.project_role.selectors import get_role_by_name_and_author_and_project
 from main.services.role.use_cases import get_pretty_view_roles_by_project
@@ -17,28 +21,28 @@ from main.services.user.selectors import get_app_user_by_token, get_app_user_by_
 from main.services.worker.use_cases import get_pretty_view_workers_by_project
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class SetCompleteProjectView(View):
-    def put(self, request, project_id):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
+class SetCompleteProjectView(UpdateAPIView):
+    serializer_class = ProjectSetCompleteSerializer
 
+    def patch(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        user = get_app_user_by_token(token=get_token(request))
         if user:
-            project = get_project_by_id(project_id=project_id)
-            if project:
-                if project.owner == user:
-                    put_body = json.loads(request.body)
-                    is_archived = put_body.get('isArchived')
-                    project.is_archived = is_archived
-                    project.save(update_fields=['is_archived'])
-                    return JsonResponse(SUCCESS_DATA, status=200)
+            self.queryset = get_projects_by_owner(owner_project=user)
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
 
-                else:
-                    return JsonResponse(NO_PERMISSION_DATA, status=404)
-            else:
-                return JsonResponse(PROJECT_NOT_FOUND_DATA, status=404)
-        else:
-            return JsonResponse(USER_NOT_FOUND_DATA, status=401)
+            if getattr(instance, '_prefetched_objects_cache', None):
+                instance._prefetched_objects_cache = {}
+
+            return Response(SUCCESS_DATA, status=status.HTTP_200_OK)
+
+        return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

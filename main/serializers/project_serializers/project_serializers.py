@@ -5,11 +5,12 @@ from main.serializers.project_serializers.worker_serializers import WorkerSerial
 from main.serializers.user_serializers import RoleSerializer
 from main.services.history_work_time_project.interactors import write_project_time_entry_to_history_table
 from main.services.history_work_time_project.use_cases import get_difference_project_work_time
+from main.services.role.selectors import get_role_by_id
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializerLong(serializers.ModelSerializer):
     workers = WorkerSerializer(many=True, read_only=True)
-    roles = RoleSerializer(many=True, read_only=True)
+    roles = RoleSerializer(many=True)
     isArchived = serializers.BooleanField(source='is_archived')
     workTime = serializers.FloatField(source='work_time')
     averageRate = serializers.FloatField(source='average_rate')
@@ -24,3 +25,50 @@ class ProjectSerializer(serializers.ModelSerializer):
         difference = get_difference_project_work_time(project=instance)
         write_project_time_entry_to_history_table(project=instance)
         return difference
+
+    def update(self, instance, validated_data):
+        update_fields = []
+        budget = validated_data.get('budget', None)
+        if budget is not None:
+            instance.budget = budget
+            instance.save(update_fields=['budget'])
+
+        name = validated_data.get('name', None)
+        if name is not None:
+            instance.name = name
+            update_fields.append('name')
+
+        currency = validated_data.get('currency', None)
+        if currency is not None:
+            instance.currency = currency
+            update_fields.append('currency')
+
+        instance.save(update_fields=update_fields)
+
+        roles = validated_data.get('roles', None)
+
+        if roles is not None:
+            for role in roles:
+                role_id = role.get('id')
+                role_instance = get_role_by_id(role_id)
+                serializer = RoleSerializer(data=role, instance=role_instance)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+        return instance
+
+
+class ProjectSerializerShort(serializers.ModelSerializer):
+    isArchived = serializers.BooleanField(source='is_archived')
+
+    class Meta:
+        model = Project
+        fields = ('id', 'name', 'isArchived')
+
+
+class ProjectSetCompleteSerializer(serializers.ModelSerializer):
+    isArchived = serializers.BooleanField(source='is_archived')
+
+    class Meta:
+        model = Project
+        fields = ('isArchived',)
