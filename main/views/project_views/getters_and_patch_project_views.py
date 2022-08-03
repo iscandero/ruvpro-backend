@@ -61,7 +61,8 @@ class ProjectView(RetrieveUpdateAPIView):
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
-            serializer.save(roles=request.data['roles'])
+
+            serializer.save(roles=request.data.get('roles', None))
 
             if getattr(instance, '_prefetched_objects_cache', None):
                 # If 'prefetch_related' has been applied to a queryset, we need to

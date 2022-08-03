@@ -2,7 +2,6 @@ from rest_framework import serializers
 from main.models import Role, SocialNetworks, AppUser
 
 
-
 class RoleSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(required=False)
@@ -64,12 +63,12 @@ class UserSerializerForOutput(serializers.ModelSerializer):
 class UserSerializerForUpdate(serializers.Serializer):
     id = serializers.IntegerField(read_only=True, required=False)
     name = serializers.CharField(required=False)
-    bio = serializers.CharField(allow_null=True, required=False)
+    bio = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False)
     authority = serializers.IntegerField(required=False)
     currency = serializers.CharField(required=False)
-    avatar = serializers.URLField()
+    avatar = serializers.URLField(allow_null=True, allow_blank=True, required=False)
     social = SocialSerializer(many=True, required=False, source='socials')
 
     def update(self, instance, validated_data):
@@ -89,7 +88,7 @@ class UserSerializerForUpdate(serializers.Serializer):
         if validated_data.get('authority') is not None:
             instance.authority = validated_data.get('authority', instance.authority)
             update_fields.append('authority')
-        if validated_data.get('avatar'):
+        if validated_data.get('avatar') is not None:
             instance.avatar = validated_data.get('avatar', instance.avatar)
             update_fields.append('avatar')
 

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from main.const_data.template_errors import *
 from main.parsers import *
-from main.serializers.project_serializers.work_time_serializers import WorkTimeSerializer
+from main.serializers.project_serializers.work_time_serializers import WorkTimeSerializer, WorkTimeSerializerForOutput
 from main.serializers.project_serializers.worker_serializers import WorkerSerializer, WorkerSerializerToCreate
 from main.serializers.project_serializers.advance_serializer import AdvanceSerializer
 from main.services.project.selectors import get_project_by_id
@@ -111,10 +111,10 @@ class TimeEntryGetCreateAPIView(APIView):
             project_id = request.headers.get('projectId', None)
             if worker_id is not None:
                 queryset = get_time_entry_by_date_and_worker_id(worker_id=int(worker_id), date=date)
-                return Response(WorkTimeSerializer(queryset).data, status=status.HTTP_200_OK)
+                return Response(WorkTimeSerializerForOutput(queryset).data, status=status.HTTP_200_OK)
 
             if project_id is not None:
                 queryset = get_time_entry_by_date_and_project_id(project_id=int(project_id), date=date)
-                return Response({'times': WorkTimeSerializer(queryset, many=True).data}, status=status.HTTP_200_OK)
+                return Response({'times': WorkTimeSerializerForOutput(queryset, many=True).data}, status=status.HTTP_200_OK)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

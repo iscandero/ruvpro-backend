@@ -25,7 +25,12 @@ class UserSettingsCurrencyView(APIView):
 
 
 class SettingsAPIView(APIView):
+
     def get(self, request):
+        """
+        Настройки
+
+        """
         token = get_token(request)
         need_user = get_app_user_by_token(token=token)
         if need_user:

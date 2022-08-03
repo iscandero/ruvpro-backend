@@ -28,3 +28,10 @@ class WorkTimeSerializer(serializers.ModelSerializer):
                 TimeEntry.objects.create(employee=worker, date=date, work_time=work_time, initiator=initiator)
 
         return worker
+
+
+class WorkTimeSerializerForOutput(WorkTimeSerializer):
+    workTime = serializers.SerializerMethodField()
+
+    def get_workTime(self, instance):
+        return instance.work_time * 3600
