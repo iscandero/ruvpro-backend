@@ -1,19 +1,19 @@
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
+from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import *
 from main.pagination import ProjectPagination
-from main.parsers import *
 from main.serializers.project_serializers.project_serializers import ProjectSerializerLong, ProjectSerializerShort
 from main.services.project.selectors import get_projects_by_owner
-from main.services.user.selectors import get_app_user_by_token
 
 
 class ProjectsListAPIView(ListAPIView):
     serializer_class = ProjectSerializerLong
+    authentication_classes = [AppUserAuthentication]
 
     def list(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             if request.headers.get('short', None) == 'true':
                 self.serializer_class = ProjectSerializerShort
@@ -39,12 +39,13 @@ class ProjectsListAPIView(ListAPIView):
 
 class ProjectView(RetrieveUpdateAPIView):
     serializer_class = ProjectSerializerLong
+    authentication_classes = [AppUserAuthentication]
 
     def put(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def retrieve(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             self.queryset = get_projects_by_owner(owner_project=user)
             instance = self.get_object()
@@ -54,7 +55,7 @@ class ProjectView(RetrieveUpdateAPIView):
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
     def update(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             self.queryset = get_projects_by_owner(owner_project=user)
             partial = kwargs.pop('partial', False)
@@ -65,8 +66,6 @@ class ProjectView(RetrieveUpdateAPIView):
             serializer.save(roles=request.data.get('roles', None))
 
             if getattr(instance, '_prefetched_objects_cache', None):
-                # If 'prefetch_related' has been applied to a queryset, we need to
-                # forcibly invalidate the prefetch cache on the instance.
                 instance._prefetched_objects_cache = {}
 
             return Response(serializer.data)

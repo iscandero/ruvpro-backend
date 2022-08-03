@@ -1,16 +1,16 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import USER_NOT_FOUND_DATA
-from main.parsers import get_token
 from main.serializers.team_serializers import TeammateSerializerForAdd
-from main.services.user.selectors import get_app_user_by_token
 
 
 class AddUserToTeam(APIView):
+    authentication_classes = [AppUserAuthentication]
+
     def post(self, request):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
+        user = request.user
         if user:
             serializer = TeammateSerializerForAdd(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)

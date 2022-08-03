@@ -1,18 +1,18 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import *
-from main.parsers import *
 from main.serializers.user_serializers.user_serializers import RoleSerializer, CurrencyUserSerializer
 from main.services.role.base_role.selectors import get_all_base_roles_by_author
 from main.services.role.selectors import get_role_by_id
-from main.services.user.selectors import get_app_user_by_token
 from rest_framework import status
 
 
 class UserSettingsCurrencyView(APIView):
+    authentication_classes = [AppUserAuthentication]
+
     def put(self, request):
-        token = get_token(request)
-        need_user = get_app_user_by_token(token=token)
+        need_user = request.user
 
         if need_user:
             serializer = CurrencyUserSerializer(data=request.data, instance=need_user)
@@ -25,14 +25,10 @@ class UserSettingsCurrencyView(APIView):
 
 
 class SettingsAPIView(APIView):
+    authentication_classes = [AppUserAuthentication]
 
     def get(self, request):
-        """
-        Настройки
-
-        """
-        token = get_token(request)
-        need_user = get_app_user_by_token(token=token)
+        need_user = request.user
         if need_user:
             roles = get_all_base_roles_by_author(author=need_user)
             return Response({"roles": RoleSerializer(roles, many=True).data, "currency": need_user.currency},
@@ -42,8 +38,7 @@ class SettingsAPIView(APIView):
             return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
     def post(self, request):
-        token = get_token(request)
-        need_user = get_app_user_by_token(token=token)
+        need_user = request.user
         if need_user:
             request.data['author_id'] = need_user.id
             serializer = RoleSerializer(data=request.data)
@@ -56,10 +51,10 @@ class SettingsAPIView(APIView):
 
 
 class UserViewForIndexInEnd(APIView):
-    def patch(self, request, role_id):
-        token = get_token(request)
+    authentication_classes = [AppUserAuthentication]
 
-        user = get_app_user_by_token(token=token)
+    def patch(self, request, role_id):
+        user = request.user
         if user:
             try:
                 role = get_role_by_id(role_id=role_id)
@@ -73,9 +68,7 @@ class UserViewForIndexInEnd(APIView):
             return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
     def delete(self, request, role_id):
-        token = get_token(request)
-        user = get_app_user_by_token(token=token)
-
+        user = request.user
         if user:
             try:
                 role_to_delete = get_role_by_id(role_id=role_id)

@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import *
 from main.parsers import *
 from main.serializers.project_serializers.work_time_serializers import WorkTimeSerializer, WorkTimeSerializerForOutput
@@ -18,9 +20,10 @@ from main.services.worker.selectors import get_worker_by_id, get_all_workers
 class UpdateDestroyAPIViewWorkerAPIView(UpdateAPIView, DestroyAPIView):
     queryset = get_all_workers()
     serializer_class = WorkerSerializer
+    authentication_classes = [AppUserAuthentication]
 
     def destroy(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             worker_id = kwargs.get('pk')
             worker = get_worker_by_id(worker_id=worker_id)
@@ -37,7 +40,7 @@ class UpdateDestroyAPIViewWorkerAPIView(UpdateAPIView, DestroyAPIView):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def patch(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             worker_id = kwargs.get('pk')
             worker = get_worker_by_id(worker_id=worker_id)
@@ -51,8 +54,10 @@ class UpdateDestroyAPIViewWorkerAPIView(UpdateAPIView, DestroyAPIView):
 
 
 class AddWorkerAPIView(APIView):
+    authentication_classes = [AppUserAuthentication]
+
     def post(self, request, project_id):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             try:
                 project = get_project_by_id(project_id=project_id)
@@ -72,8 +77,10 @@ class AddWorkerAPIView(APIView):
 
 
 class AdvanceCreateAPIView(APIView):
+    authentication_classes = [AppUserAuthentication]
+
     def post(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             times = request.data['times']
             serializer = AdvanceSerializer(data=times, many=True)
@@ -88,8 +95,10 @@ class AdvanceCreateAPIView(APIView):
 
 
 class TimeEntryGetCreateAPIView(APIView):
+    authentication_classes = [AppUserAuthentication]
+
     def post(self, request, *args, **kwargs):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             times = request.data['times']
             serializer = WorkTimeSerializer(data=times, many=True)
@@ -103,7 +112,7 @@ class TimeEntryGetCreateAPIView(APIView):
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
     def get(self, request):
-        user = get_app_user_by_token(token=get_token(request))
+        user = request.user
         if user:
             timestamp = float(request.headers['date'])
             date = convert_timestamp_to_date(timestamp=timestamp)
@@ -115,6 +124,7 @@ class TimeEntryGetCreateAPIView(APIView):
 
             if project_id is not None:
                 queryset = get_time_entry_by_date_and_project_id(project_id=int(project_id), date=date)
-                return Response({'times': WorkTimeSerializerForOutput(queryset, many=True).data}, status=status.HTTP_200_OK)
+                return Response({'times': WorkTimeSerializerForOutput(queryset, many=True).data},
+                                status=status.HTTP_200_OK)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

@@ -1,4 +1,3 @@
 def get_token(request):
-    token_data_with_bearer = request.headers['Authorization']
-    token = str(token_data_with_bearer)[7:]
-    return token
+    bearer_token = request.headers.get('Authorization', None)
+    return str(bearer_token)[7:] if bearer_token is not None else None

@@ -1,16 +1,16 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import *
-from main.parsers import *
 from main.serializers.user_serializers.user_serializers import UserSerializerForOutput, UserSerializerForUpdate
-from main.services.user.selectors import get_app_user_by_token
 
 
 class UserView(APIView):
+    authentication_classes = [AppUserAuthentication]
+
     def get(self, request):
-        token = get_token(request)
-        need_user = get_app_user_by_token(token=token)
+        need_user = request.user
         if need_user:
             return Response(UserSerializerForOutput(need_user, context={'request': request}).data,
                             status=status.HTTP_200_OK)
@@ -18,8 +18,7 @@ class UserView(APIView):
             return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
     def patch(self, request):
-        token = get_token(request)
-        need_user = get_app_user_by_token(token=token)
+        need_user = request.user
         if need_user:
             serializer = UserSerializerForUpdate(data=request.data, instance=need_user)
             serializer.is_valid(raise_exception=True)
