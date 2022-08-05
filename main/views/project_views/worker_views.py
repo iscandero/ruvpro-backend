@@ -79,7 +79,6 @@ class AddWorkerAPIView(APIView):
 
 class AdvanceCreateAPIView(APIView):
     authentication_classes = [AppUserAuthentication]
-
     def get(self, request):
         user = request.user
         if user:

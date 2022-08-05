@@ -16,7 +16,7 @@ class UploadFile(CreateAPIView):
         user = request.user
         if user:
             request.data['user'] = user.id
-            serializer = self.get_serializer(data=request.data, context={'request': request})
+            serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

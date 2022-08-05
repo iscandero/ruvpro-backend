@@ -53,7 +53,7 @@ class FileUser(models.Model):
         verbose_name_plural = "Файлы пользователей"
 
     user = models.ForeignKey(to=AppUser, verbose_name="Пользователь", on_delete=models.CASCADE)
-    file = models.ImageField(verbose_name="Файл", upload_to='users_files')
+    file = models.FileField(verbose_name="Файл", upload_to='users_files')
 
     def __str__(self):
         return f"Загрука {self.id}: {self.user.name}"
