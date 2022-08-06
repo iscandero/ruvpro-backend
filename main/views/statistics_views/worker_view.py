@@ -61,7 +61,8 @@ class GetWorkerStatistic(APIView):
                         'y': 0
                     },
                 ]
-
+            import operator
+            entries = sorted(entries, key=operator.itemgetter('x'))
             salary['chartDataSet'] = {'entries': entries}
 
             output_data = {
