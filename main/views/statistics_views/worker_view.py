@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import USER_NOT_FOUND_DATA
-from main.serializers.statistics_serializers import WorkTimeSerializerForStatistics, \
+from main.serializers.statistics_serializers.perosnal_serializers import WorkTimeSerializerForStatistics, \
     RateSerializerForStatistics, SalarySerializerForStatistics
 from main.services.statistic.selectors import get_time_entry_by_user_and_interval_date, \
     get_rate_by_user_and_interval_date_with_need_currency, get_current_avg_worker_rate_by_user_with_need_currency
