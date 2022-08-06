@@ -54,3 +54,7 @@ def get_workers_by_user_and_willing(user: AppUser, willing: AppUser):
 
 def get_all_workers():
     return ProjectEmployee.objects.all()
+
+
+def get_worker_ids_by_user(user: AppUser):
+    return ProjectEmployee.objects.filter(user=user).values_list('id', flat=True)

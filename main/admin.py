@@ -27,3 +27,7 @@ admin.site.register(AuthData)
 admin.site.register(SocialNetworks)
 
 admin.site.register(FileUser)
+
+admin.site.register(HistoryRate)
+
+

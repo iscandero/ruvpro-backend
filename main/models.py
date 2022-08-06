@@ -194,7 +194,7 @@ class TimeEntry(models.Model):
     initiator = models.ForeignKey(to=AppUser, verbose_name="ID Инициатора", unique=False, null=True, blank=True,
                                   on_delete=models.CASCADE)
     employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
-    date = models.DateField(verbose_name="Дата (timestamp)", unique=False, null=False,
+    date = models.DateField(verbose_name="Дата", unique=False, null=False,
                             blank=False)
     work_time = models.FloatField(verbose_name="Выданное рабочее время", unique=False, null=False, blank=False)
 
@@ -217,6 +217,19 @@ class HistoryWorker(models.Model):
 
     def __str__(self):
         return f"История {self.id} - работник {self.employee.id}"
+
+
+class HistoryRate(models.Model):
+    class Meta:
+        verbose_name = "История ставок"
+        verbose_name_plural = "Истории ставок"
+
+    date_change = models.DateField(verbose_name='Дата внесения изменений', null=True, blank=True)
+    employee = models.ForeignKey(to=ProjectEmployee, verbose_name="ID Рабочего", on_delete=models.CASCADE)
+    rate = models.FloatField(verbose_name="Ставка рабочего", null=True, blank=True, unique=False, default=0)
+
+    def __str__(self):
+        return f"Ставка {self.id} - работника {self.employee.id}"
 
 
 class HistoryProject(models.Model):

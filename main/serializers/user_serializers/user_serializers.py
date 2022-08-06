@@ -43,21 +43,11 @@ class CurrencyUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializerForOutput(serializers.ModelSerializer):
-    # avatar = serializers.SerializerMethodField()
     social = SocialSerializer(many=True, source='socials')
 
     class Meta:
         model = AppUser
         fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social')
-
-    # def get_avatar(self, user):
-    #     request = self.context.get('request')
-    #     avatar = user.avatar
-    #     if avatar:
-    #         avatar_url = avatar.url
-    #         return request.build_absolute_uri(avatar_url)
-    #
-    #     return None
 
 
 class UserSerializerForUpdate(serializers.Serializer):

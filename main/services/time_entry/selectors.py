@@ -1,8 +1,5 @@
-import datetime
-
 from main.models import TimeEntry, ProjectEmployee
 from main.services.project.selectors import get_project_by_id
-from main.services.work_with_date import convert_timestamp_to_date
 from main.services.worker.selectors import get_worker_by_id, get_workers_by_project
 
 
