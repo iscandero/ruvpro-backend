@@ -50,17 +50,46 @@ class GetWorkerStatistic(APIView):
             entries = get_entries_to_salary_chart(rate=avg_rate, times_queryset=times_queryset,
                                                   count_points=chart_points_count)
 
-            if entries is None:
-                entries = [
+            if len(entries) == 0:
+                entries.append(
                     {
                         'x': start_date_timestamp,
                         'y': 0
-                    },
+                    })
+                entries.append(
                     {
                         'x': end_date_timestamp,
                         'y': 0
                     },
-                ]
+                )
+
+            if len(entries) == 1:
+                if convert_timestamp_to_date(entries[0]['x']) == convert_timestamp_to_date(start_date_timestamp):
+                    entries.append(
+                        {
+                            'x': end_date_timestamp,
+                            'y': 0
+                        }
+                    )
+                elif convert_timestamp_to_date(entries[0]['x']) == convert_timestamp_to_date(end_date_timestamp):
+                    entries.append(
+                        {
+                            'x': start_date_timestamp,
+                            'y': 0
+                        })
+                else:
+                    entries.append(
+                        {
+                            'x': start_date_timestamp,
+                            'y': 0
+                        })
+                    entries.append(
+                        {
+                            'x': end_date_timestamp,
+                            'y': 0
+                        },
+                    )
+
             import operator
             entries = sorted(entries, key=operator.itemgetter('x'))
             salary['chartDataSet'] = {'entries': entries}

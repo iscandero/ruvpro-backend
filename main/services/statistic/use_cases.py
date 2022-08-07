@@ -44,35 +44,42 @@ def get_entries_to_salary_chart(rate, times_queryset, count_points):
         date_with_max_time_entry = datetime.datetime.combine(date_with_max_time_entry,
                                                              datetime.datetime.min.time()).timestamp()
 
-        entries = [{
-            'x': date_with_min_time_entry,
-            'y': rate * min_time_entry
-        }, {
-            'x': date_with_max_time_entry,
-            'y': rate * max_time_entry
-        }]
-        if count_points != 2:
-            first_date = datetime.datetime.combine(times_queryset.filter().first().date,
-                                                   datetime.datetime.min.time()).timestamp()
-            last_date = datetime.datetime.combine(times_queryset.filter().last().date,
-                                                  datetime.datetime.min.time()).timestamp()
-            interval = last_date - first_date
-            count_points -= 2
-            delta = interval / count_points
+        if date_with_max_time_entry != date_with_min_time_entry:
+            entries = [{
+                'x': date_with_min_time_entry,
+                'y': rate * min_time_entry
+            }, {
+                'x': date_with_max_time_entry,
+                'y': rate * max_time_entry
+            }]
 
-            times_queryset = times_queryset.exclude(work_time__in=[max_time_entry, min_time_entry])
-
-            pre_value_timestamp = first_date
-            for time_entry in times_queryset:
-                timestamp = datetime.datetime.combine(time_entry.date,
+            if count_points != 2:
+                first_date = datetime.datetime.combine(times_queryset.filter().first().date,
+                                                       datetime.datetime.min.time()).timestamp()
+                last_date = datetime.datetime.combine(times_queryset.filter().last().date,
                                                       datetime.datetime.min.time()).timestamp()
-                if timestamp - pre_value_timestamp >= delta and len(entries) - 2 <= count_points:
-                    entries.append({
-                        'x': timestamp,
-                        'y': rate * time_entry.work_time
-                    })
-                    pre_value_timestamp = timestamp
+                interval = last_date - first_date
+                count_points -= 2
+                delta = interval / count_points
+
+                times_queryset = times_queryset.exclude(work_time__in=[max_time_entry, min_time_entry])
+
+                pre_value_timestamp = first_date
+                for time_entry in times_queryset:
+                    timestamp = datetime.datetime.combine(time_entry.date,
+                                                          datetime.datetime.min.time()).timestamp()
+                    if timestamp - pre_value_timestamp >= delta and len(entries) - 2 <= count_points:
+                        entries.append({
+                            'x': timestamp,
+                            'y': rate * time_entry.work_time
+                        })
+                        pre_value_timestamp = timestamp
+        else:
+            entries = [{
+                'x': date_with_max_time_entry,
+                'y': rate * max_time_entry
+            }]
 
         return entries
 
-    return None
+    return []
