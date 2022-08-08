@@ -32,3 +32,7 @@ def get_time_entry_by_date_and_project_id(project_id: int, date):
         times_entry.append(get_time_entry_by_date_and_worker_id(worker_id=worker_id, date=date))
 
     return times_entry
+
+
+def get_not_zero_time_entry_by_worker(worker: ProjectEmployee):
+    return get_time_entrys_by_worker(employee=worker).exclude(work_time=0)

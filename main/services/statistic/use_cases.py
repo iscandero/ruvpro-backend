@@ -2,6 +2,8 @@ import datetime
 
 from django.db.models import Sum, Min, Max, Avg
 
+from main.services.work_with_date import convert_timestamp_to_date
+
 
 def sum_queryset(queryset, field):
     if queryset:
@@ -31,7 +33,7 @@ def avg_queryset(queryset, field):
     return 0
 
 
-def get_entries_to_salary_chart(rate, times_queryset, count_points):
+def get_entries_to_work_time_chart(times_queryset, count_points):
     if times_queryset:
         min_time_entry = min_queryset(queryset=times_queryset, field='work_time')
         max_time_entry = max_queryset(queryset=times_queryset, field='work_time')
@@ -47,10 +49,10 @@ def get_entries_to_salary_chart(rate, times_queryset, count_points):
         if date_with_max_time_entry != date_with_min_time_entry:
             entries = [{
                 'x': date_with_min_time_entry,
-                'y': rate * min_time_entry
+                'y': min_time_entry
             }, {
                 'x': date_with_max_time_entry,
-                'y': rate * max_time_entry
+                'y': max_time_entry
             }]
 
             if count_points != 2:
@@ -71,15 +73,82 @@ def get_entries_to_salary_chart(rate, times_queryset, count_points):
                     if timestamp - pre_value_timestamp >= delta and len(entries) - 2 <= count_points:
                         entries.append({
                             'x': timestamp,
-                            'y': rate * time_entry.work_time
+                            'y': time_entry.work_time
                         })
                         pre_value_timestamp = timestamp
         else:
             entries = [{
                 'x': date_with_max_time_entry,
-                'y': rate * max_time_entry
+                'y': max_time_entry
             }]
 
         return entries
 
     return []
+
+
+def get_normalize_entries_view(entries: list, start_date_timestamp, end_date_timestamp):
+    if len(entries) == 0:
+        entries.append(
+            {
+                'x': start_date_timestamp,
+                'y': 0
+            })
+        entries.append(
+            {
+                'x': end_date_timestamp,
+                'y': 0
+            },
+        )
+
+    if len(entries) == 1:
+        if convert_timestamp_to_date(entries[0]['x']) == convert_timestamp_to_date(start_date_timestamp):
+            entries.append(
+                {
+                    'x': end_date_timestamp,
+                    'y': 0
+                }
+            )
+        elif convert_timestamp_to_date(entries[0]['x']) == convert_timestamp_to_date(end_date_timestamp):
+            entries.append(
+                {
+                    'x': start_date_timestamp,
+                    'y': 0
+                })
+        else:
+            entries.append(
+                {
+                    'x': start_date_timestamp,
+                    'y': 0
+                })
+            entries.append(
+                {
+                    'x': end_date_timestamp,
+                    'y': 0
+                },
+            )
+
+    import operator
+    entries = sorted(entries, key=operator.itemgetter('x'))
+
+    return entries
+
+
+def transform_work_time_entries_to_salary(entries: list, rate: float):
+    new_entries = []
+    for point in entries:
+        new_point = point.copy()
+        new_point['y'] *= rate
+        new_entries.append(new_point)
+
+    return new_entries
+
+
+def transform_work_time_entries_to_seconds(entries: list):
+    new_entries = []
+    for point in entries:
+        new_point = point.copy()
+        new_point['y'] *= 3600
+        new_entries.append(new_point)
+
+    return new_entries

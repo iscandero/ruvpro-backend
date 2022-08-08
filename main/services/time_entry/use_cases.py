@@ -1,7 +1,8 @@
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
-from main.models import AppUser
-from main.services.time_entry.selectors import get_time_entry_employees_by_ids_list, get_time_entrys_by_worker
+from main.models import ProjectEmployee
+from main.services.time_entry.selectors import get_time_entry_employees_by_ids_list, get_time_entrys_by_worker, \
+    get_not_zero_time_entry_by_worker
 
 
 def get_sum_work_time_by_workers(workers):
@@ -14,3 +15,6 @@ def get_sum_work_time_by_worker(worker):
     return time_aggregate['sum_time']
 
 
+def get_count_workdays_by_worker(worker: ProjectEmployee):
+    times_count = get_not_zero_time_entry_by_worker(worker=worker).aggregate(count=Count('id'))
+    return times_count['count']

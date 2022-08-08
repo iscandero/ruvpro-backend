@@ -1,21 +1,14 @@
 from rest_framework import serializers
 
 from main.models import ProjectEmployee, Role
-from main.services.project.selectors import get_project_by_id
-from main.services.role.selectors import get_all_project_roles, get_role_by_id
+from main.services.role.selectors import get_all_project_roles
 from main.services.user.selectors import get_all_users
-from main.services.worker.use_cases import get_rate_by_worker
 
 
-# class ImageUrlField(serializers.RelatedField):
-#     def to_representation(self, instance):
-#         if instance.avatar:
-#             url = instance.avatar.url
-#         else:
-#             return None
-#
-#         request = self.context.get('request', None)
-#         return request.build_absolute_uri(url)
+class ModelRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = '__all__'
 
 
 class WorkerSerializer(serializers.ModelSerializer):

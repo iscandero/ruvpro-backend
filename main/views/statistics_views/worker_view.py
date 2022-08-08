@@ -3,17 +3,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from main.authentication import AppUserAuthentication
-from main.const_data.template_errors import USER_NOT_FOUND_DATA
-from main.serializers.statistics_serializers.perosnal_serializers import WorkTimeSerializerForStatistics, \
-    RateSerializerForStatistics, SalarySerializerForStatistics
+from main.const_data.template_errors import USER_NOT_FOUND_DATA, WORKER_NOT_FOUND
+from main.serializers.statistics_serializers.personal_serializers import WorkTimeSerializerForStatistics, \
+    RateSerializerForStatistics, SalarySerializerForStatistics, WorkerSerializerForStatistic
 from main.services.statistic.selectors import get_time_entry_by_user_and_interval_date, \
     get_rate_by_user_and_interval_date_with_need_currency, get_current_avg_worker_rate_by_user_with_need_currency
-from main.services.statistic.use_cases import get_entries_to_salary_chart
+from main.services.statistic.use_cases import get_entries_to_work_time_chart, get_normalize_entries_view, \
+    transform_work_time_entries_to_salary
 
 from main.services.work_with_date import convert_timestamp_to_date
+from main.services.worker.selectors import get_worker_by_user_and_project_id
 
 
-class GetWorkerStatistic(APIView):
+class AllWorkerStatisticAPIView(APIView):
     authentication_classes = [AppUserAuthentication]
 
     def get(self, request):
@@ -47,52 +49,16 @@ class GetWorkerStatistic(APIView):
 
             salary = SalarySerializerForStatistics(user, context=context_for_salary).data
 
-            entries = get_entries_to_salary_chart(rate=avg_rate, times_queryset=times_queryset,
-                                                  count_points=chart_points_count)
+            work_time_entries = get_entries_to_work_time_chart(times_queryset=times_queryset,
+                                                               count_points=chart_points_count)
 
-            if len(entries) == 0:
-                entries.append(
-                    {
-                        'x': start_date_timestamp,
-                        'y': 0
-                    })
-                entries.append(
-                    {
-                        'x': end_date_timestamp,
-                        'y': 0
-                    },
-                )
+            normalize_entries = get_normalize_entries_view(entries=work_time_entries,
+                                                           start_date_timestamp=start_date_timestamp,
+                                                           end_date_timestamp=end_date_timestamp)
 
-            if len(entries) == 1:
-                if convert_timestamp_to_date(entries[0]['x']) == convert_timestamp_to_date(start_date_timestamp):
-                    entries.append(
-                        {
-                            'x': end_date_timestamp,
-                            'y': 0
-                        }
-                    )
-                elif convert_timestamp_to_date(entries[0]['x']) == convert_timestamp_to_date(end_date_timestamp):
-                    entries.append(
-                        {
-                            'x': start_date_timestamp,
-                            'y': 0
-                        })
-                else:
-                    entries.append(
-                        {
-                            'x': start_date_timestamp,
-                            'y': 0
-                        })
-                    entries.append(
-                        {
-                            'x': end_date_timestamp,
-                            'y': 0
-                        },
-                    )
+            salary_entries = transform_work_time_entries_to_salary(entries=normalize_entries, rate=avg_rate)
 
-            import operator
-            entries = sorted(entries, key=operator.itemgetter('x'))
-            salary['chartDataSet'] = {'entries': entries}
+            salary['chartDataSet'] = {'entries': salary_entries}
 
             output_data = {
                 'workTime': work_time,
@@ -100,5 +66,21 @@ class GetWorkerStatistic(APIView):
                 'salary': salary
             }
             return Response(output_data, status=status.HTTP_200_OK)
+
+        return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class WorkerStatisticAPIView(APIView):
+    authentication_classes = [AppUserAuthentication]
+
+    def get(self, request, pk):
+        user = request.user
+        if user:
+            try:
+                worker = get_worker_by_user_and_project_id(user=user, project_id=pk)
+            except:
+                return Response(WORKER_NOT_FOUND, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(WorkerSerializerForStatistic(worker).data, status=status.HTTP_200_OK)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

@@ -1,5 +1,9 @@
 from rest_framework import serializers
+
+from main.models import ProjectEmployee
+from main.serializers.project_serializers.worker_serializers import ModelRoleSerializer
 from main.services.statistic.use_cases import sum_queryset, avg_queryset, max_queryset, min_queryset
+from main.services.time_entry.use_cases import get_count_workdays_by_worker
 
 
 class WorkTimeSerializerForStatistics(serializers.Serializer):
@@ -69,3 +73,17 @@ class SalarySerializerForStatistics(serializers.Serializer):
         avg_rate = self.context.get('avg_rate')
         avg_work_time = self.context.get('avg_work_time') / 3600
         return avg_work_time * avg_rate
+
+
+class WorkerSerializerForStatistic(serializers.ModelSerializer):
+    name = serializers.SlugRelatedField(source='user', slug_field='name', read_only=True)
+    avatar = serializers.SlugRelatedField(source='user', slug_field='avatar', read_only=True)
+    role = ModelRoleSerializer()
+    workdaysCount = serializers.SerializerMethodField('get_count_workdays')
+
+    class Meta:
+        model = ProjectEmployee
+        fields = ('id', 'name', 'avatar', 'role', 'rate', 'workdaysCount', 'advance')
+
+    def get_count_workdays(self, instance):
+        return get_count_workdays_by_worker(worker=instance)

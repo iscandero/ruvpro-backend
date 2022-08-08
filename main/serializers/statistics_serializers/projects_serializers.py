@@ -42,3 +42,13 @@ class ProjectSerializerForStatistics(serializers.ModelSerializer):
 
     def get_total_work_time(self, instance):
         return instance.work_time * 3600
+
+
+class ProjectSerializerForSpecificStatistics(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(source='project', read_only=True)
+    workerId = serializers.IntegerField(source='id', read_only=True)
+    currency = serializers.SlugRelatedField(source='project', slug_field='currency', read_only=True)
+
+    class Meta:
+        model = ProjectEmployee
+        fields = ('id', 'workerId', 'currency')

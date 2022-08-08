@@ -51,3 +51,12 @@ def get_current_avg_worker_rate_by_user_with_need_currency(user: AppUser, curren
 
     len_rates = len(rates)
     return sum(rates) / len_rates if len_rates != 0 else 0
+
+
+def get_time_entry_by_worker_and_interval_date(worker: ProjectEmployee, start_date, end_date):
+    """
+    Возвращает TimeEntry работника worker
+    в заданном интервале времени
+    """
+    return TimeEntry.objects.filter(date__gte=start_date, date__lte=end_date, employee=worker).exclude(
+        work_time=0)
