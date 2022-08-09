@@ -271,3 +271,16 @@ class ProjectTimeEntryHistory(models.Model):
 
     def __str__(self):
         return f"Изменение времени {self.id} проекта {self.project.id}"
+
+
+class CurrencyCourse(models.Model):
+    class Meta:
+        verbose_name = 'Курсы валют'
+        verbose_name_plural = 'Курсы валют'
+
+    pair = models.CharField(verbose_name='Пара валют', max_length=6)
+    price = models.FloatField(verbose_name='Цена')
+    date = models.DateField(verbose_name='Дата записи')
+
+    def __str__(self):
+        return f"{self.pair}: {self.date}"

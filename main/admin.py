@@ -30,4 +30,6 @@ admin.site.register(FileUser)
 
 admin.site.register(HistoryRate)
 
+admin.site.register(CurrencyCourse)
+
 
