@@ -1,6 +1,6 @@
 from django.urls import path
 
-from main.views.statistics_views import worker_view, advance_view, project_view
+from main.views.statistics_views import worker_view, project_view
 
 urlpatterns = [
     path('api/statistics/personal', worker_view.AllWorkerStatisticAPIView.as_view()),

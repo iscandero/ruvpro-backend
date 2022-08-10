@@ -7,7 +7,7 @@ from main.const_data.template_errors import USER_NOT_FOUND_DATA, WORKER_NOT_FOUN
 from main.serializers.statistics_serializers.personal_serializers import WorkTimeSerializerForStatistics, \
     RateSerializerForStatistics, SalarySerializerForStatistics, WorkerSerializerForStatistic
 from main.services.statistic.selectors import get_time_entry_by_user_and_interval_date, \
-    get_rate_by_user_and_interval_date_with_need_currency, get_current_avg_worker_rate_by_user_with_need_currency
+    get_rates_list_by_user, get_current_avg_worker_rate_by_user_with_need_currency
 from main.services.statistic.use_cases import get_entries_to_work_time_chart, get_normalize_entries_view, \
     transform_work_time_entries_to_salary
 
@@ -29,8 +29,7 @@ class AllWorkerStatisticAPIView(APIView):
 
             times_queryset = get_time_entry_by_user_and_interval_date(user=user, start_date=start_date,
                                                                       end_date=end_date)
-            rates_list = get_rate_by_user_and_interval_date_with_need_currency(user=user, start_date=start_date,
-                                                                               end_date=end_date, currency=currency)
+            rates_list = get_rates_list_by_user(user=user, currency=currency)
 
             avg_rate = get_current_avg_worker_rate_by_user_with_need_currency(user=user, currency=currency)
 

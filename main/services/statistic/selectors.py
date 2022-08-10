@@ -13,23 +13,21 @@ def get_time_entry_by_user_and_interval_date(user: AppUser, start_date, end_date
         work_time=0)
 
 
-def get_rate_by_user_and_interval_date_with_need_currency(user: AppUser, start_date, end_date, currency):
+def get_rates_list_by_user(user: AppUser, currency):
     """
-    Возвращает ставки работников с пользователем user
-    в заданном интервале времени
+    Возвращает текущие ставки работников с пользователем user
     конвертируя валюту в необходимую
     """
     workers_ids = get_worker_ids_by_user(user=user)
-    rates_queryset = HistoryRate.objects.filter(date_change__gte=start_date, date_change__lte=end_date,
-                                                employee_id__in=workers_ids).exclude(rate=0)
+    workers_queryset = ProjectEmployee.objects.filter(id__in=workers_ids).exclude(rate=0)
     rates = []
-    for rate in rates_queryset:
-        project_currency = rate.employee.project.currency
-        if rate.rate != 0 and project_currency != currency:
-            rates.append(convert_currency(amount=rate.rate, current_currency=project_currency,
+    for worker in workers_queryset:
+        project_currency = worker.project.currency
+        if worker.rate != 0 and project_currency != currency:
+            rates.append(convert_currency(amount=worker.rate, current_currency=project_currency,
                                           need_currency=currency))
         else:
-            rates.append(rate.rate)
+            rates.append(worker.rate)
 
     return rates
 
