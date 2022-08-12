@@ -70,7 +70,7 @@ def get_entries_to_work_time_chart(times_queryset, count_points):
                 for time_entry in times_queryset:
                     timestamp = datetime.datetime.combine(time_entry.date,
                                                           datetime.datetime.min.time()).timestamp()
-                    if timestamp - pre_value_timestamp >= delta and len(entries) - 2 <= count_points:
+                    if timestamp - pre_value_timestamp >= delta:
                         entries.append({
                             'x': timestamp,
                             'y': time_entry.work_time
