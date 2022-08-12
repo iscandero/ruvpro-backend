@@ -1,10 +1,13 @@
 import time
-from datetime import datetime
 import random
+
+from django.db.models import Sum, Count
 
 from main.models import SocialNetworks, AppUser, Project, Role, ProjectEmployee, TimeEntry
 from main.services.team.selectors import get_team_by_owner
+from main.services.time_entry.selectors import get_time_entrys_by_worker
 from main.services.user.selectors import is_exist_user_phone, get_app_user_by_phone, get_app_user_by_email
+from main.services.work_with_date import convert_timestamp_to_date
 
 DOMAIN_EMAIL_LIST = ['@ruvim.pro', '@incetro.com', '@ruv.pro', '@ya.ru', '@green.ru', '@icloud.com']
 INSTAGRAM_BASE = 'https://www.instagram.com/'
@@ -15,15 +18,20 @@ FACEBOOK_BASE = 'https://www.facebook.com/'
 TELEGRAM_BASE = 'https://t.me/'
 
 
+def get_sum_salarys_by_project(project: Project):
+    salary_aggregate = ProjectEmployee.objects.filter(project=project).aggregate(sum_salary=Sum('salary'))
+    return salary_aggregate['sum_salary'] if salary_aggregate['sum_salary'] is not None else 0
+
+
 def create_test_user_if_need(name: str, phone: str, path_to_avatar: str, bio: str, authority: int):
     if not is_exist_user_phone(phone=phone):
         name_for_email_and_social = name.replace(' ', '').lower()
         email = name_for_email_and_social + random.choice(DOMAIN_EMAIL_LIST)
 
         socials = {"Instagram": INSTAGRAM_BASE + name_for_email_and_social + '/',
-                   "Vk": VK_BASE + name_for_email_and_social,
+                   "VK": VK_BASE + name_for_email_and_social,
                    "Twitter": TWITTER_BASE + name_for_email_and_social,
-                   "Youtube": YOUTUBE_BASE + name_for_email_and_social,
+                   "YouTube": YOUTUBE_BASE + name_for_email_and_social,
                    "Facebook": FACEBOOK_BASE + name_for_email_and_social,
                    "Telegram": TELEGRAM_BASE + name_for_email_and_social,
                    }
@@ -208,12 +216,11 @@ def create_test_users_and_owner_team():
     add_user_by_team_owner(owner=owner, user_to_add=leticia)
 
 
-CURRENCY_LIST = ['RUB', 'USD', 'EUR']
 from main.const_data.base_roles import *
 
 
 def generate_test_project(name: str, budget: float, owner: AppUser):
-    currency = random.choice(CURRENCY_LIST)
+    currency = 'RUB'
     project = Project.objects.create(owner=owner, name=name, budget=budget, currency=currency, is_archived=False)
 
     master_role_for_project = MASTER_ROLE.copy()
@@ -279,6 +286,20 @@ def generate_test_project(name: str, budget: float, owner: AppUser):
     return project, project_roles_dict
 
 
+def generate_random_work_time_by_worker(worker: ProjectEmployee):
+    project_budget = worker.project.budget
+    workers_count_dict = ProjectEmployee.objects.filter(project=worker.project).aggregate(count=Count('id'))
+    workers_count = int(workers_count_dict['count'])
+    worker_percent = worker.role.percentage if worker.role.percentage is not None else 100
+    for i in range(random.randint(30, 100)):
+        random_timestamp = random.randint(1627819888, int(time.time()))
+        random_date = convert_timestamp_to_date(random_timestamp)
+        random_hours = random.randint(2, 12)
+        if (get_sum_salarys_by_project(
+                project=worker.project) + worker_percent * random_hours) < project_budget * workers_count:
+            TimeEntry.objects.create(employee=worker, date=random_date, work_time=random_hours)
+
+
 def create_test_projects(owner: AppUser):
     henry = get_app_user_by_email('henrypearson@ruvim.pro')
     edmund = get_app_user_by_email('edmundfreeman@incetro.com')
@@ -291,49 +312,69 @@ def create_test_projects(owner: AppUser):
     leticia = get_app_user_by_email('leticiafrancis@ruv.pro')
 
     project, roles_dict = generate_test_project(name='Пушкина 22/2', budget=1000000, owner=owner)
-    ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student'])
-    ProjectEmployee.objects.create(user=edward, project=project, role=roles_dict['mentor'])
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=edward, project=project, role=roles_dict['mentor']))
 
     project, roles_dict = generate_test_project(name='ЖК Тургенев', budget=3000000, owner=owner)
-    ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=andrew, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student'])
-    ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['student'])
-    ProjectEmployee.objects.create(user=jamie, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=leticia, project=project, role=roles_dict['mentor'])
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=andrew, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['student']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=jamie, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=leticia, project=project, role=roles_dict['mentor']))
 
     project, roles_dict = generate_test_project(name='Ворошиловский проспект 11', budget=2500000, owner=owner)
-    ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=henry, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=jim, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student'])
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=henry, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=jim, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student']))
 
     project, roles_dict = generate_test_project(name='Пролетарская 93', budget=2880000, owner=owner)
-    ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['mentor'])
-    ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['student'])
-    ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['intern'])
-    ProjectEmployee.objects.create(user=leticia, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student'])
-    ProjectEmployee.objects.create(user=jamie, project=project, role=roles_dict['master'])
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['mentor']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['student']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['intern']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=leticia, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=nancy, project=project, role=roles_dict['student']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=jamie, project=project, role=roles_dict['master']))
 
     project, roles_dict = generate_test_project(name='Базовская 156/5', budget=1700000, owner=owner)
-    ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=jim, project=project, role=roles_dict['aux'])
-    ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['master'])
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=edmund, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=jim, project=project, role=roles_dict['aux']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['master']))
 
     project, roles_dict = generate_test_project(name='ЖК Восточный кв.17', budget=900000, owner=owner)
-    ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=jim, project=project, role=roles_dict['master'])
-    ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['aux'])
-
-
-def generate_random_work_time_by_worker(worker: ProjectEmployee):
-    project_budget = worker.project.budget
-    for i in range(random.randint(100, 500)):
-        random_timestamp = random.randint(1627819888, int(time.time()))
-        random_date = datetime.fromtimestamp(random_timestamp).strftime('%Y-%m-%d')
-        TimeEntry.objects.create()
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=owner, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=jim, project=project, role=roles_dict['master']))
+    generate_random_work_time_by_worker(
+        ProjectEmployee.objects.create(user=megan, project=project, role=roles_dict['aux']))
