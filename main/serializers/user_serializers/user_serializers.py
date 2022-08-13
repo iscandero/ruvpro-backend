@@ -25,7 +25,7 @@ class RoleSerializer(serializers.Serializer):
             instance.save(update_fields=['percentage'])
 
         if validated_data.get('amount') is not None:
-            instance.percentage = validated_data.get('amount', instance.amount)
+            instance.amount = validated_data.get('amount', instance.amount)
             instance.save(update_fields=['amount'])
         return instance
 
