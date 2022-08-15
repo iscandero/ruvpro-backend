@@ -35,7 +35,11 @@ def get_app_user_by_email(email: str):
 
 
 def get_app_user_by_phone(phone):
-    return AppUser.objects.filter(email=phone).first()
+    return AppUser.objects.filter(phone=phone).first()
+
+
+def get_deleted_app_user_by_phone(phone):
+    return AppUser.objects.filter(phone=phone, is_deleted=True).first()
 
 
 def get_no_register_app_user_by_email(email: str):

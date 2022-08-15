@@ -6,9 +6,12 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
+from main.const_data.template_errors import USER_NOT_FOUND_DATA
 from main.models import *
 from main.parsers import *
-from main.services.user.selectors import get_no_register_app_user_by_email
+from main.services.auth.selectors import get_auth_data_by_refresh_token
+from main.services.user.selectors import get_no_register_app_user_by_email, get_deleted_app_user_by_phone, \
+    get_app_user_by_phone
 from main.services.work_with_date import convert_timestamp_to_date
 
 BASE_URL = 'http://82.148.18.226'
@@ -21,50 +24,82 @@ class UserRegistry(View):
 
         email = post_body.get('email')
         phone = post_body.get('phone')
-        code = post_body.get('code')
         password = post_body.get('pin')
         name = post_body.get('name')
+        code = post_body.get('code')
 
-        user_data_for_api = {
-            'email': email,
-            'phone': phone,
-            'code': code,
-            'pin': password,
-            'firstname': name,
-            'username': phone
-        }
+        find_user = get_deleted_app_user_by_phone(phone=phone)
+        if find_user:
+            find_user.email = email
+            find_user.name = name
+            find_user.is_deleted = False
+            find_user.is_register = True
+            find_user.save()
 
-        response = requests.post(f"{BASE_URL}/api/user/signup", json=user_data_for_api)
-        json_resp = response.json()
+            data_to_api = {
+                'pin': password,
+                'code': code,
+                'phone': phone
+            }
 
-        if response.status_code == 200:
-            token = json_resp.get('token')
-            refresh_token = json_resp.get('refreshToken')
-            valid_until = json_resp.get('validUntil')
+            requests.post(f"{BASE_URL}/api/user/reset-pin", json=data_to_api)
 
-            user_to_create_or_update = get_no_register_app_user_by_email(email=email)
+            response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
+            json_resp = response.json()
 
-            if not user_to_create_or_update:
-                data_to_create_user = {
-                    'name': name,
-                    'email': email,
-                    'phone': phone,
-                    'is_register': True,
-                    'authority': 0,
-                }
-                user_to_create_or_update = AppUser.objects.create(**data_to_create_user)
+            if response.status_code == 200:
+                token = json_resp.get('token')
+                refresh_token = json_resp.get('refreshToken')
+                valid_until = json_resp.get('validUntil')
 
-            else:
-                user_to_create_or_update.name = name
-                user_to_create_or_update.phone = phone
-                user_to_create_or_update.authority = 0
-                user_to_create_or_update.is_register = True
-                user_to_create_or_update.save(update_fields=['name', 'phone'])
+                AuthData.objects.create(user=find_user, token_data=token, refresh_token_data=refresh_token,
+                                        valid_until=convert_timestamp_to_date(valid_until))
+                json_resp['code'] = 66
+            return JsonResponse(json_resp, status=response.status_code)
 
-            AuthData.objects.create(user=user_to_create_or_update, token_data=token, refresh_token_data=refresh_token,
-                                    valid_until=convert_timestamp_to_date(valid_until))
+        else:
 
-        return JsonResponse(json_resp, status=response.status_code)
+            user_data_for_api = {
+                'email': email,
+                'phone': phone,
+                'code': code,
+                'pin': password,
+                'firstname': name,
+                'username': phone
+            }
+
+            response = requests.post(f"{BASE_URL}/api/user/signup", json=user_data_for_api)
+            json_resp = response.json()
+
+            if response.status_code == 200:
+                token = json_resp.get('token')
+                refresh_token = json_resp.get('refreshToken')
+                valid_until = json_resp.get('validUntil')
+
+                user_to_create_or_update = get_no_register_app_user_by_email(email=email)
+
+                if not user_to_create_or_update:
+                    data_to_create_user = {
+                        'name': name,
+                        'email': email,
+                        'phone': phone,
+                        'is_register': True,
+                        'authority': 0,
+                    }
+                    user_to_create_or_update = AppUser.objects.create(**data_to_create_user)
+
+                else:
+                    user_to_create_or_update.name = name
+                    user_to_create_or_update.phone = phone
+                    user_to_create_or_update.authority = 0
+                    user_to_create_or_update.is_register = True
+                    user_to_create_or_update.save(update_fields=['name', 'phone'])
+
+                AuthData.objects.create(user=user_to_create_or_update, token_data=token,
+                                        refresh_token_data=refresh_token,
+                                        valid_until=convert_timestamp_to_date(valid_until))
+
+            return JsonResponse(json_resp, status=response.status_code)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -78,19 +113,30 @@ class UserLogin(View):
             'phone': phone
         }
 
-        response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
-        json_resp = response.json()
-        user = AppUser.objects.get(phone=phone)
+        user = get_app_user_by_phone(phone=phone)
 
-        if response.status_code == 200:
-            token = json_resp.get('token')
-            refresh_token = json_resp.get('refreshToken')
-            valid_until = json_resp.get('validUntil')
+        if not user.is_deleted:
+            response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
+            json_resp = response.json()
 
-            AuthData.objects.create(user=user, token_data=token, refresh_token_data=refresh_token,
-                                    valid_until=convert_timestamp_to_date(valid_until))
+            if response.status_code == 200:
+                token = json_resp.get('token')
+                refresh_token = json_resp.get('refreshToken')
+                valid_until = json_resp.get('validUntil')
 
-        return JsonResponse(json_resp, status=response.status_code)
+                AuthData.objects.create(user=user, token_data=token, refresh_token_data=refresh_token,
+                                        valid_until=convert_timestamp_to_date(valid_until))
+
+            return JsonResponse(json_resp, status=response.status_code)
+
+        else:
+            output_data = {
+                "errors": "Phone number or password entered incorrectly",
+                "code": 3004,
+                "extended_desc": "Phone number or password entered incorrectly",
+                "status": False
+            }
+            return JsonResponse(output_data, status=403)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -99,7 +145,11 @@ class UserSendCode(View):
         post_body = json.loads(request.body)
         phone = post_body.get('phone')
         type = post_body.get('type')
-        target = post_body.get('sms')
+        target = post_body.get('target')
+
+        find_user = get_deleted_app_user_by_phone(phone=phone)
+        if find_user:
+            type = 1
 
         data_to_api = {
             'phone': phone,
@@ -129,19 +179,23 @@ class UserRenewToken(View):
             "Authorization": "Bearer " + str(token)
         }
 
-        response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api, headers=headers)
-        json_resp = response.json()
+        auth_data_to_change = get_auth_data_by_refresh_token(refresh=refresh_token)
 
-        if response.status_code == 200:
-            auth_data_to_change = AuthData.objects.get(refresh_token_data=refresh_token)
+        if auth_data_to_change:
+            response = requests.post(f"{BASE_URL}/api/user/token-renew", json=data_to_api, headers=headers)
+            json_resp = response.json()
 
-            auth_data_to_change.token_data = json_resp.get('token')
-            auth_data_to_change.refresh_token_data = json_resp.get('refreshToken')
-            auth_data_to_change.valid_until = convert_timestamp_to_date(json_resp.get('validUntil'))
+            if response.status_code == 200:
+                auth_data_to_change.token_data = json_resp.get('token')
+                auth_data_to_change.refresh_token_data = json_resp.get('refreshToken')
+                auth_data_to_change.valid_until = convert_timestamp_to_date(json_resp.get('validUntil'))
 
-            auth_data_to_change.save(update_fields=['token_data', 'refresh_token_data', 'valid_until'])
+                auth_data_to_change.save(update_fields=['token_data', 'refresh_token_data', 'valid_until'])
 
-        return JsonResponse(json_resp, status=response.status_code)
+            return JsonResponse(json_resp, status=response.status_code)
+
+        else:
+            return JsonResponse(USER_NOT_FOUND_DATA, status=403)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -152,6 +206,11 @@ class UserCheckCode(View):
         phone = post_body.get('phone')
         code = post_body.get('code')
         type = post_body.get('type')
+
+        find_user = get_deleted_app_user_by_phone(phone=phone)
+
+        if find_user:
+            type = 1
 
         data_to_api = {
             "phone": phone,

@@ -97,3 +97,5 @@ class UserSerializerForUpdate(serializers.Serializer):
 
         instance.save(update_fields=update_fields)
         return instance
+
+

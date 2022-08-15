@@ -43,6 +43,9 @@ class AppUser(models.Model):
 
     socials = models.ManyToManyField(to=SocialNetworks, verbose_name="Соц. Сети", related_name='socials', blank=True)
 
+    is_deleted = models.BooleanField(verbose_name='Флаг удалённого пользователя', null=False, blank=True,
+                                     default=False)
+
     def __str__(self):
         return f"Пользователь {self.id}: {self.name}"
 
