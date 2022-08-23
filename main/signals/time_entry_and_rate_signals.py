@@ -7,7 +7,7 @@ from main.models import TimeEntry, ProjectEmployee, Project, HistoryRate
 from main.services.project.use_cases import get_budget_without_additional_income_in_project, \
     update_roles_time_in_project_by_worker, subtract_work_time_from_project_by_worker
 from main.services.time_entry.use_cases import get_sum_work_time_by_workers, get_sum_work_time_by_worker
-from main.services.worker.selectors import get_ids_workers_by_project
+from main.services.worker.selectors import get_ids_workers_by_project, get_workers_by_project
 from main.services.worker.use_cases import get_rate_by_worker
 
 
@@ -52,8 +52,10 @@ def calculate_project_time_data_from_delete_worker(sender, instance, **kwargs):
 
 @receiver(post_save, sender=TimeEntry)
 def calculate_worker_rate(sender, instance, **kwargs):
-    worker = instance.employee
-    rate = get_rate_by_worker(worker=worker)
-    worker.rate = rate
-    worker.save(update_fields=['rate'])
-    HistoryRate.objects.create(employee=worker, rate=rate, date_change=instance.date)
+    project = instance.employee.project
+    workers = get_workers_by_project(project=project)
+    for worker in workers:
+        rate = get_rate_by_worker(worker=worker)
+        worker.rate = rate
+        worker.save(update_fields=['rate'])
+        HistoryRate.objects.create(employee=worker, rate=rate, date_change=instance.date)
