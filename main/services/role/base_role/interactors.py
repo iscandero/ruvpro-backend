@@ -15,12 +15,12 @@ def get_base_role_with_author(user: AppUser, base_role: dict) -> dict:
 
 def is_user_need_role_by_name(user: AppUser, name: str) -> bool:
     """
-    Если пользователь имеет подписку и у него нет базовой роли
+    Если у пользователя нет базовой роли
     с заданным названием -> пользователю нужна такая базовая роль
     """
-    if is_sub_user(user=user):
-        if not is_user_has_base_role_by_name(user=user, name_role=name):
-            return True
+
+    if not is_user_has_base_role_by_name(user=user, name_role=name):
+        return True
 
     return False
 

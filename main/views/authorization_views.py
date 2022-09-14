@@ -93,7 +93,8 @@ class UserRegistry(View):
                     user_to_create_or_update.phone = phone
                     user_to_create_or_update.authority = 0
                     user_to_create_or_update.is_register = True
-                    user_to_create_or_update.save(update_fields=['name', 'phone'])
+                    user_to_create_or_update.is_deleted = False
+                    user_to_create_or_update.save()
 
                 AuthData.objects.create(user=user_to_create_or_update, token_data=token,
                                         refresh_token_data=refresh_token,
@@ -115,7 +116,7 @@ class UserLogin(View):
 
         user = get_app_user_by_phone(phone=phone)
 
-        if not user.is_deleted:
+        if user and not user.is_deleted:
             response = requests.post(f"{BASE_URL}/api/user/login", json=data_to_api)
             json_resp = response.json()
 

@@ -3,10 +3,9 @@ from main.services.role.base_role.interactors import *
 from main.services.role.base_role.selectors import get_all_base_roles_by_author
 
 
-def create_base_roles_for_sub_user(roles_author: AppUser) -> None:
+def create_base_roles_if_needed(roles_author: AppUser) -> None:
     """
-    Создание базовых ролей для пользователя, который купил подписку
-    Его authority = 1
+    Создание базовых ролей для пользователя, если это необходимо
     """
     add_master_role_if_needed(user=roles_author)
     add_mentor_role_if_needed(user=roles_author)
