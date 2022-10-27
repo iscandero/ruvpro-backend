@@ -16,6 +16,8 @@ admin.site.register(TimeEntry)
 
 admin.site.register(Role)
 
+admin.site.register(RolesTypeDictionary)
+
 admin.site.register(HistoryAdvance)
 
 admin.site.register(HistoryWorker)

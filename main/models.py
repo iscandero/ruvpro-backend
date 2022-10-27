@@ -127,6 +127,18 @@ class Project(models.Model):
         return f"Проект {self.id}: {self.name}"
 
 
+class RolesTypeDictionary(models.Model):
+    class Meta:
+        verbose_name = 'Тип роли'
+        verbose_name_plural = 'Типы роли'
+
+    code = models.IntegerField(verbose_name='Код роли', null=False, blank=False)
+    name = models.CharField(verbose_name="Название роли", unique=True, null=False, blank=False, max_length=255)
+
+    def __str__(self):
+        return f"{self.code}: {self.name}"
+
+
 class Role(models.Model):
     class Meta:
         verbose_name = "Роль"
@@ -149,6 +161,8 @@ class Role(models.Model):
     # не null, если роль - проектная
     project = models.ForeignKey(to=Project, verbose_name='Проект, которому принадлежит роль', null=True, blank=True,
                                 on_delete=models.CASCADE, related_name='roles')
+
+    code = models.IntegerField(verbose_name='Код роли', null=False, blank=False)
 
     def __str__(self):
         return f"Роль {self.id}: {self.name}"
