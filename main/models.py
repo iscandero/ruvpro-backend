@@ -1,6 +1,7 @@
 from django.db import models
 
 from main.const_data.currency_codes import currency_list
+from main.const_data.links_names import links_names_list
 from main.const_data.social_network_names import social_networks_list
 
 
@@ -301,3 +302,16 @@ class CurrencyCourse(models.Model):
 
     def __str__(self):
         return f"{self.pair}: {self.date}"
+
+
+class Link(models.Model):
+    class Meta:
+        verbose_name = 'Ссылки'
+        verbose_name_plural = 'Ссылки'
+
+    name = models.CharField(verbose_name="Название", null=False, unique=True, blank=False, max_length=255,
+                            choices=links_names_list)
+    url = models.TextField(verbose_name='Ссылка / эл-почта / прочая информация', null=True, blank=True)
+
+    def __str__(self):
+        return f"Ссылка на {self.name}"

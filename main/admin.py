@@ -4,6 +4,8 @@ from .models import *
 
 admin.site.register(Project)
 
+admin.site.register(Link)
+
 admin.site.register(ProjectEmployee)
 
 admin.site.register(ProjectTimeEntryHistory)

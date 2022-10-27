@@ -44,6 +44,11 @@ class WorkerSerializer(serializers.ModelSerializer):
         slug_field='percentage',
         source='role'
     )
+    roleCode = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='code',
+        source='role'
+    )
 
     def get_workTime(self, instance):
         return instance.work_time * 3600
@@ -51,7 +56,7 @@ class WorkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectEmployee
         fields = ('id', 'userId', 'rate', 'advance', 'salary', 'roleId', 'workTime', 'avatar', 'name', 'projectId',
-                  'roleName', 'roleColor', 'roleAmount', 'rolePercentage',)
+                  'roleName', 'roleColor', 'roleAmount', 'rolePercentage', 'roleCode')
 
     def update(self, instance, validated_data):
         instance.role = validated_data.get('role')
