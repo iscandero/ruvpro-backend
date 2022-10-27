@@ -162,7 +162,7 @@ class Role(models.Model):
     project = models.ForeignKey(to=Project, verbose_name='Проект, которому принадлежит роль', null=True, blank=True,
                                 on_delete=models.CASCADE, related_name='roles')
 
-    code = models.IntegerField(verbose_name='Код роли', null=False, blank=False)
+    code = models.IntegerField(verbose_name='Код роли', null=False, blank=False, default=0)
 
     def __str__(self):
         return f"Роль {self.id}: {self.name}"

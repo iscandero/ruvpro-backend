@@ -10,6 +10,7 @@ class RoleSerializer(serializers.Serializer):
     percentage = serializers.FloatField(allow_null=True, required=False)
     amount = serializers.FloatField(allow_null=True, required=False)
     type = serializers.IntegerField(required=False)
+    code = serializers.IntegerField(read_only=True)
 
     def create(self, validated_data):
         return Role.objects.create(**validated_data)

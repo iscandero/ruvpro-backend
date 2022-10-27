@@ -10,6 +10,7 @@ MASTER_ROLE = {
     'is_base': True,
     'type': 0,
     'project': None,
+    'code': 1,
 }
 
 MENTOR_ROLE = {
@@ -20,6 +21,7 @@ MENTOR_ROLE = {
     'is_base': True,
     'type': 0,
     'project': None,
+    'code': 2,
 }
 
 AUXILIARY_ROLE = {
@@ -30,6 +32,7 @@ AUXILIARY_ROLE = {
     'is_base': True,
     'type': 0,
     'project': None,
+    'code': 3,
 }
 
 STUDENT_ROLE = {
@@ -40,6 +43,7 @@ STUDENT_ROLE = {
     'is_base': True,
     'type': 0,
     'project': None,
+    'code': 4,
 }
 
 ACC_JOURNAL_ROLE = {
@@ -50,16 +54,18 @@ ACC_JOURNAL_ROLE = {
     'is_base': True,
     'type': 1,
     'project': None,
+    'code': 5,
 }
 
 AMORTIZATION_INST_ROLE = {
-    'name': 'Аммортизация инструмента',
+    'name': 'Амортизация инструмента',
     'description': 'Описание роли',
     'color': 'eb96eb',
     'percentage': 10,
     'is_base': True,
     'type': 1,
     'project': None,
+    'code': 6,
 }
 
 INTERN_ROLE = {
@@ -70,6 +76,7 @@ INTERN_ROLE = {
     'is_base': True,
     'type': 0,
     'project': None,
+    'code': 7,
 }
 
 RESPONSIBLE_ROLE = {
@@ -80,4 +87,5 @@ RESPONSIBLE_ROLE = {
     'is_base': True,
     'type': 1,
     'project': None,
+    'code': 8,
 }

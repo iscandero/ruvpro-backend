@@ -4,7 +4,7 @@ from main.services.time_entry.interactors import calculate_work_time_all_workers
 
 
 def get_budget_without_additional_income_in_project(project):
-    amortization_role = get_role_by_project_and_name(project=project, role_name='Аммортизация инструмента')
+    amortization_role = get_role_by_project_and_name(project=project, role_name='Амортизация инструмента')
     amortization_inst_role_percentage = amortization_role.percentage if amortization_role is not None else 0
 
     journal_role = get_role_by_project_and_name(project=project, role_name='Журнал учета')

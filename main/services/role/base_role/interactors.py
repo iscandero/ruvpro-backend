@@ -56,7 +56,7 @@ def add_acc_journal_role_if_needed(user: AppUser) -> None:
 
 
 def add_amortization_instr_role_if_needed(user: AppUser) -> None:
-    if is_user_need_role_by_name(user=user, name='Аммортизация инструмента'):
+    if is_user_need_role_by_name(user=user, name='Амортизация инструмента'):
         role_to_create = get_base_role_with_author(user=user, base_role=AMORTIZATION_INST_ROLE)
         Role.objects.create(**role_to_create)
 

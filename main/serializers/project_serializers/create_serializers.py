@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from main.models import Project, ProjectEmployee, Role
+from main.services.codes.selectors import get_code_by_role_name
 from main.services.role.project_role.selectors import get_role_by_name_and_project
 from main.services.user.selectors import get_all_users
 
@@ -11,6 +12,7 @@ class RoleSerializerForCreateProject(serializers.ModelSerializer):
         fields = ('name', 'description', 'color', 'percentage', 'amount', 'type')
 
     def create(self, validated_data):
+        validated_data['code'] = get_code_by_role_name(name=validated_data['name'])
         return Role.objects.create(**validated_data)
 
 
