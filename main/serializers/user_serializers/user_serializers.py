@@ -45,21 +45,23 @@ class CurrencyUserSerializer(serializers.ModelSerializer):
 
 class UserSerializerForOutput(serializers.ModelSerializer):
     social = SocialSerializer(many=True, source='socials')
+    isRegister = serializers.BooleanField(source='is_register')
+
     class Meta:
         model = AppUser
-        fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social')
+        fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social', 'isRegister')
 
 
 class UserSerializerForUpdate(serializers.Serializer):
     id = serializers.IntegerField(read_only=True, required=False)
-    name = serializers.CharField(required=False)
+    name = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     bio = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    email = serializers.EmailField(required=False)
-    phone = serializers.CharField(required=False)
-    authority = serializers.IntegerField(required=False)
-    currency = serializers.CharField(required=False)
+    email = serializers.EmailField(allow_null=True, allow_blank=True, required=False)
+    phone = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    authority = serializers.IntegerField(allow_null=True, required=False)
+    currency = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     avatar = serializers.URLField(allow_null=True, allow_blank=True, required=False)
-    social = SocialSerializer(many=True, required=False, source='socials')
+    social = SocialSerializer(allow_null=True, many=True, required=False, source='socials')
 
     def update(self, instance, validated_data):
         update_fields = []
@@ -82,7 +84,7 @@ class UserSerializerForUpdate(serializers.Serializer):
             instance.avatar = validated_data.get('avatar', instance.avatar)
             update_fields.append('avatar')
 
-        socials = validated_data.get('socials')
+        socials = validated_data.get('socials', None)
         if socials is not None:
             for social in socials:
                 social_name = social['name']
@@ -97,5 +99,3 @@ class UserSerializerForUpdate(serializers.Serializer):
 
         instance.save(update_fields=update_fields)
         return instance
-
-

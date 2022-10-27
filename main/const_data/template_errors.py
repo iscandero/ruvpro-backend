@@ -26,3 +26,5 @@ SUCCESS_DATA = {'message': 'Успешно'}
 USER_NOT_EXIST_IN_TEAM_DATA = {'message': 'Пользователь не найден в команде',
                                'code': 4463}
 NOT_DELETE_DATA = {'message': 'Невозможно удалить себя из команды'}
+
+NOT_UPDATE_USER = {'message': 'Невозможно редактировать зарегистрированного пользователя'}

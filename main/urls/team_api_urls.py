@@ -1,6 +1,7 @@
 from django.urls import path, include
 
 from main.views.team_views import getters_team_views, post_team_view, delete_team_views
+from main.views.team_views.update_no_register_teammate import PatchTeammateView
 
 urlpatterns = [
     path('api/', include([
@@ -8,5 +9,6 @@ urlpatterns = [
         path('users/<int:user_id>/projects', getters_team_views.GetProjectsByTeamUser.as_view()),
         path('team/worker', post_team_view.AddUserToTeam.as_view()),
         path('team/worker/<int:user_id>', delete_team_views.DeleteUserByTeam.as_view()),
+        path('team/<int:user_id>', PatchTeammateView.as_view()),
     ]))
 ]

@@ -33,7 +33,7 @@ class AppUser(models.Model):
                             default='Имя')
     email = models.EmailField(verbose_name="email пользователя", unique=True, null=False, blank=False,
                               default='admin@admin.com')
-    phone = models.CharField(verbose_name="Телефон пользователя", null=True, blank=False, max_length=255)
+    phone = models.CharField(verbose_name="Телефон пользователя", null=True, blank=True, max_length=255)
     avatar = models.URLField(verbose_name="Аватар пользователя (Путь)", null=True, blank=True)
     bio = models.TextField(verbose_name="Биография пользователя", null=True, blank=True)
     authority = models.IntegerField(verbose_name="Полномочия пользователя", null=False, blank=False, unique=False)
