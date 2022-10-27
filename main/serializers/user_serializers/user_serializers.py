@@ -45,7 +45,6 @@ class CurrencyUserSerializer(serializers.ModelSerializer):
 
 class UserSerializerForOutput(serializers.ModelSerializer):
     social = SocialSerializer(many=True, source='socials')
-
     class Meta:
         model = AppUser
         fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social')

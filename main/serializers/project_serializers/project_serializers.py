@@ -12,19 +12,25 @@ class ProjectSerializerLong(serializers.ModelSerializer):
     workers = WorkerSerializer(many=True, read_only=True)
     roles = RoleSerializer(many=True)
     isArchived = serializers.BooleanField(source='is_archived', required=False)
+    percentMasterByStudent = serializers.FloatField(required=False)
+    percentMentorByStudent = serializers.FloatField(required=False)
     workTime = serializers.SerializerMethodField()
     averageRate = serializers.FloatField(source='average_rate')
     differenceTimeEntry = serializers.SerializerMethodField()
+    isEditable = serializers.SerializerMethodField('get_is_editable')
 
     class Meta:
         model = Project
         fields = ('id', 'name', 'workers', 'roles', 'budget', 'isArchived', 'workTime', 'averageRate', 'currency',
-                  'differenceTimeEntry')
+                  'differenceTimeEntry', 'isEditable', 'percentMasterByStudent', 'percentMentorByStudent')
 
     def get_differenceTimeEntry(self, instance):
         difference = get_difference_project_work_time(project=instance)
         write_project_time_entry_to_history_table(project=instance)
         return difference
+
+    def get_is_editable(self, instance):
+        return True if instance.owner.id == self.context.get('user_id') else False
 
     def update(self, instance, validated_data):
         update_fields = []
@@ -63,10 +69,14 @@ class ProjectSerializerLong(serializers.ModelSerializer):
 
 class ProjectSerializerShort(serializers.ModelSerializer):
     isArchived = serializers.BooleanField(source='is_archived')
+    isEditable = serializers.SerializerMethodField('get_is_editable')
 
     class Meta:
         model = Project
-        fields = ('id', 'name', 'isArchived')
+        fields = ('id', 'name', 'isArchived', 'isEditable')
+
+    def get_is_editable(self, instance):
+        return True if instance.owner.id == self.context.get('user_id') else False
 
 
 class ProjectSetCompleteSerializer(serializers.ModelSerializer):

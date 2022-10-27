@@ -124,6 +124,11 @@ class Project(models.Model):
     currency = models.CharField(verbose_name='Валюта', null=False, blank=False, choices=currency_list, default='RUB',
                                 max_length=3)
 
+    percentMasterByStudent = models.FloatField(verbose_name="% мастера от ученика", unique=False, null=False,
+                                               blank=False, default=10)
+    percentMentorByStudent = models.FloatField(verbose_name="% ментора от ученика", unique=False, null=False,
+                                               blank=False, default=30)
+
     def __str__(self):
         return f"Проект {self.id}: {self.name}"
 

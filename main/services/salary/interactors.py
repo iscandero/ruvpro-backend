@@ -24,17 +24,20 @@ def calculate_master_or_mentor_salary(worker: ProjectEmployee):
     coefficient_from_assist = (100 - get_role_by_project_and_name(project=project,
                                                                   role_name='Подсобный').percentage) / 100
 
-    coefficient_from_pupil = (100 - get_role_by_project_and_name(project=project,
-                                                                 role_name='Ученик').percentage) / 100
+    # coefficient_from_pupil = (100 - get_role_by_project_and_name(project=project,
+    #                                                              role_name='Ученик').percentage) / 100
+
+    coefficient_from_pupil_master = project.percentMasterByStudent / 100
+    coefficient_from_pupil_mentor = project.percentMentorByStudent / 100
 
     share_from_assist = coefficient_from_assist * average_rate * project.assists_work_time
 
     share_from_intern = average_rate * project.interns_work_time - interns_amount
 
     if worker.role.name == 'Мастер':
-        share_from_pupil = coefficient_from_pupil * average_rate * project.pupils_work_time
+        share_from_pupil = coefficient_from_pupil_master * average_rate * project.pupils_work_time
     else:
-        share_from_pupil = 1.1 * coefficient_from_pupil * average_rate * project.pupils_work_time
+        share_from_pupil = coefficient_from_pupil_mentor * average_rate * project.pupils_work_time
 
     masters_and_mentors_times = project.masters_work_time + project.mentors_work_time
     masters_and_mentors_times_for_pupil_share = project.masters_work_time + 1.1 * project.mentors_work_time

@@ -8,7 +8,7 @@ from main.const_data.template_errors import *
 from main.parsers import *
 from main.serializers.project_serializers.create_serializers import ProjectSerializerForCreate
 from main.serializers.project_serializers.project_serializers import ProjectSetCompleteSerializer, ProjectSerializerLong
-from main.services.project.selectors import get_projects_by_owner, get_all_project
+from main.services.project.selectors import get_projects_for_owner_or_member, get_all_project
 from main.services.user.selectors import get_app_user_by_token
 
 
@@ -22,7 +22,7 @@ class SetCompleteProjectView(UpdateAPIView):
     def update(self, request, *args, **kwargs):
         user = request.user
         if user:
-            self.queryset = get_projects_by_owner(owner_project=user)
+            self.queryset = get_projects_for_owner_or_member(viewer_user=user)
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -48,6 +48,7 @@ class ProjectCreateAPIView(CreateAPIView):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             project = serializer.save(owner=user)
-            return Response(ProjectSerializerLong(project).data, status=status.HTTP_201_CREATED)
+            return Response(ProjectSerializerLong(project, context={'user_id': user.id}).data,
+                            status=status.HTTP_201_CREATED)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
