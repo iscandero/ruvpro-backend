@@ -20,7 +20,8 @@ class PatchTeammateView(APIView):
             serializer = UserSerializerForUpdate(data=request.data, instance=user_for_update)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(UserSerializerForOutput(user_for_update, context={'request': request}).data,
-                            status=status.HTTP_200_OK)
+            return Response(
+                UserSerializerForOutput(user_for_update, context={'request': request, 'userId': user.id}).data,
+                status=status.HTTP_200_OK)
         else:
             return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

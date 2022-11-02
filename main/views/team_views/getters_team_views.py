@@ -18,7 +18,7 @@ class GetUsersByTeam(ListAPIView):
     def list(self, request, *args, **kwargs):
         user = request.user
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, context={'userId': user.id}, many=True)
         if 'projects' in request.headers:
             for teammate in serializer.data:
                 user_id = get_app_user_by_id(id=teammate['id'])

@@ -45,11 +45,22 @@ class CurrencyUserSerializer(serializers.ModelSerializer):
 
 class UserSerializerForOutput(serializers.ModelSerializer):
     social = SocialSerializer(many=True, source='socials')
-    isRegister = serializers.BooleanField(source='is_register')
+    isEditable = serializers.SerializerMethodField('get_is_editable')
+    isCurrentUser = serializers.SerializerMethodField('get_is_current_user')
 
     class Meta:
         model = AppUser
-        fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social', 'isRegister')
+        fields = ('id', 'name', 'bio', 'email', 'phone', 'authority', 'avatar', 'social', 'isEditable', 'isCurrentUser')
+
+    def get_is_editable(self, instance):
+        if not instance.is_register or self.context.get('userId') == instance.id:
+            return True
+        return False
+
+    def get_is_current_user(self, instance):
+        if self.context.get('userId') == instance.id:
+            return True
+        return False
 
 
 class UserSerializerForUpdate(serializers.Serializer):
