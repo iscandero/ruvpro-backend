@@ -49,6 +49,15 @@ class ProjectSerializerLong(serializers.ModelSerializer):
             instance.currency = currency
             update_fields.append('currency')
 
+        percent_master_by_student = validated_data.get('percentMasterByStudent', None)
+        if percent_master_by_student is not None:
+            instance.percentMasterByStudent = percent_master_by_student
+            update_fields.append('percentMasterByStudent')
+        percent_mentor_by_student = validated_data.get('percentMentorByStudent', None)
+        if percent_mentor_by_student is not None:
+            instance.percentMentorByStudent = percent_mentor_by_student
+            update_fields.append('percentMentorByStudent')
+
         instance.save(update_fields=update_fields)
 
         roles = validated_data.get('roles', None)
@@ -60,6 +69,8 @@ class ProjectSerializerLong(serializers.ModelSerializer):
                 serializer = RoleSerializer(data=role, instance=role_instance)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+
+
 
         return instance
 
