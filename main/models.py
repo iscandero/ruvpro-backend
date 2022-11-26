@@ -129,6 +129,9 @@ class Project(models.Model):
     percentMentorByStudent = models.FloatField(verbose_name="% ментора от ученика", unique=False, null=False,
                                                blank=False, default=30)
 
+    percentComplete = models.FloatField(verbose_name="% Выполнения проекта", unique=False, null=False,
+                                        blank=False, default=100)
+
     def __str__(self):
         return f"Проект {self.id}: {self.name}"
 

@@ -49,7 +49,9 @@ def calculate_master_or_mentor_salary(worker: ProjectEmployee):
     else:
         salary = 0
 
-    return salary
+    percent_complete = project.percentComplete
+    coefficient_complete = percent_complete / 100
+    return salary * coefficient_complete
 
 
 def calculate_standard_salary(worker: ProjectEmployee):
@@ -57,10 +59,13 @@ def calculate_standard_salary(worker: ProjectEmployee):
     Подсчёт зп работника
     который не получает доп.плату за других сотрудников проекта
     """
+    project = worker.project
     role_percentage = worker.role.percentage
     worker_time = worker.work_time
     average_rate = worker.project.average_rate
 
     salary = worker_time * average_rate * (role_percentage / 100)
 
-    return salary
+    percent_complete = project.percentComplete
+    coefficient_complete = percent_complete / 100
+    return salary * coefficient_complete

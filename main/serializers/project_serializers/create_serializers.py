@@ -38,14 +38,22 @@ class ProjectSerializerForCreate(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('name', 'budget', 'roles', 'workers', 'currency')
+        fields = ('name', 'budget', 'roles', 'workers', 'currency', 'percentMasterByStudent', 'percentMentorByStudent',
+                  'percentComplete')
 
     def create(self, validated_data):
         name = validated_data.get('name', None)
         budget = validated_data.get('budget', None)
         currency = validated_data.get('currency', None)
         owner = validated_data.get('owner', None)
-        project = Project.objects.create(name=name, budget=budget, owner=owner, is_archived=False, currency=currency)
+        percent_master_by_student = validated_data.get('percentMasterByStudent', None)
+        percent_mentor_by_student = validated_data.get('percentMentorByStudent', None)
+        percent_complete = validated_data.get('percentComplete', None)
+
+        project = Project.objects.create(name=name, budget=budget, owner=owner, is_archived=False, currency=currency,
+                                         percentMasterByStudent=percent_master_by_student,
+                                         percentMentorByStudent=percent_mentor_by_student,
+                                         percentComplete=percent_complete)
 
         roles = validated_data.get('roles', None)
         serializer = RoleSerializerForCreateProject(data=roles, many=True)

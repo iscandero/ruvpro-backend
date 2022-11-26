@@ -14,6 +14,7 @@ class ProjectSerializerLong(serializers.ModelSerializer):
     isArchived = serializers.BooleanField(source='is_archived', required=False)
     percentMasterByStudent = serializers.FloatField(required=False)
     percentMentorByStudent = serializers.FloatField(required=False)
+    percentComplete = serializers.FloatField(required=False)
     workTime = serializers.SerializerMethodField()
     averageRate = serializers.FloatField(source='average_rate')
     differenceTimeEntry = serializers.SerializerMethodField()
@@ -22,7 +23,8 @@ class ProjectSerializerLong(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ('id', 'name', 'workers', 'roles', 'budget', 'isArchived', 'workTime', 'averageRate', 'currency',
-                  'differenceTimeEntry', 'isEditable', 'percentMasterByStudent', 'percentMentorByStudent')
+                  'differenceTimeEntry', 'isEditable', 'percentMasterByStudent', 'percentMentorByStudent',
+                  'percentComplete')
 
     def get_differenceTimeEntry(self, instance):
         difference = get_difference_project_work_time(project=instance)
@@ -58,6 +60,11 @@ class ProjectSerializerLong(serializers.ModelSerializer):
             instance.percentMentorByStudent = percent_mentor_by_student
             update_fields.append('percentMentorByStudent')
 
+        percent_complete = validated_data.get('percentComplete', None)
+        if percent_complete is not None:
+            instance.percentComplete = percent_complete
+            update_fields.append('percentComplete')
+
         instance.save(update_fields=update_fields)
 
         roles = validated_data.get('roles', None)
@@ -69,8 +76,6 @@ class ProjectSerializerLong(serializers.ModelSerializer):
                 serializer = RoleSerializer(data=role, instance=role_instance)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-
-
 
         return instance
 
