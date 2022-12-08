@@ -12,7 +12,9 @@ from main.services.worker.selectors import get_workers_by_project
 @receiver(post_save, sender=ProjectEmployee)
 def calculate_salary_signal(sender, created, instance, update_fields, **kwargs):
     if (sender == TimeEntry and (created or update_fields == {'work_time'})) or (
-            sender == Project and update_fields == {'budget'}) or (sender == Role and instance.project is not None and (
+            sender == Project and update_fields in (
+    {'budget'}, {'percentComplete'}, {'percentMasterByStudent'}, {'percentMentorByStudent'})) or (
+            sender == Role and instance.project is not None and (
             update_fields == {'percentage'} or update_fields == {'amount'})) or (
             sender == ProjectEmployee and update_fields == {'role'}):
 

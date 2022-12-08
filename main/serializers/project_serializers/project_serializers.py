@@ -54,16 +54,17 @@ class ProjectSerializerLong(serializers.ModelSerializer):
         percent_master_by_student = validated_data.get('percentMasterByStudent', None)
         if percent_master_by_student is not None:
             instance.percentMasterByStudent = percent_master_by_student
-            update_fields.append('percentMasterByStudent')
+            instance.save(update_fields=['percentMasterByStudent'])
+
         percent_mentor_by_student = validated_data.get('percentMentorByStudent', None)
         if percent_mentor_by_student is not None:
             instance.percentMentorByStudent = percent_mentor_by_student
-            update_fields.append('percentMentorByStudent')
+            instance.save(update_fields=['percentMentorByStudent'])
 
         percent_complete = validated_data.get('percentComplete', None)
         if percent_complete is not None:
             instance.percentComplete = percent_complete
-            update_fields.append('percentComplete')
+            instance.save(update_fields=['percentComplete'])
 
         instance.save(update_fields=update_fields)
 
