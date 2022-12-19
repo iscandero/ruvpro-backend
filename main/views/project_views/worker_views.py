@@ -79,6 +79,7 @@ class AddWorkerAPIView(APIView):
 
 class AdvanceCreateAPIView(APIView):
     authentication_classes = [AppUserAuthentication]
+
     def get(self, request):
         user = request.user
         if user:
@@ -103,7 +104,8 @@ class AdvanceCreateAPIView(APIView):
             times = request.data['times']
             serializer = AdvanceSerializer(data=times, many=True)
             serializer.is_valid(raise_exception=True)
-            workers_to_output = serializer.save(times=times, initiator=user)
+            serializer.save(times=times, initiator=user)
+            workers_to_output = list(map(lambda item: get_worker_by_id(item['workerId']), times))
 
             return Response(
                 {'workers': WorkerSerializer(workers_to_output, context={'request': request}, many=True).data},
@@ -121,7 +123,8 @@ class TimeEntryGetCreateAPIView(APIView):
             times = request.data['times']
             serializer = WorkTimeSerializer(data=times, many=True)
             serializer.is_valid(raise_exception=True)
-            workers_to_output = serializer.save(times=times, initiator=user)
+            serializer.save(times=times, initiator=user)
+            workers_to_output = list(map(lambda item: get_worker_by_id(item['workerId']), times))
 
             return Response(
                 {'workers': WorkerSerializer(workers_to_output, context={'request': request}, many=True).data},

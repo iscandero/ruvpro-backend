@@ -48,7 +48,7 @@ class ProjectSerializerForCreate(serializers.ModelSerializer):
         owner = validated_data.get('owner', None)
         percent_master_by_student = validated_data.get('percentMasterByStudent', None)
         percent_mentor_by_student = validated_data.get('percentMentorByStudent', None)
-        percent_complete = validated_data.get('percentComplete', None)
+        percent_complete = validated_data.get('percentComplete', 0)
 
         project = Project.objects.create(name=name, budget=budget, owner=owner, is_archived=False, currency=currency,
                                          percentMasterByStudent=percent_master_by_student,
