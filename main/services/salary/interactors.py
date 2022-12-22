@@ -24,23 +24,25 @@ def calculate_master_or_mentor_salary(worker: ProjectEmployee):
     coefficient_from_assist = (100 - get_role_by_project_and_name(project=project,
                                                                   role_name='Подсобный').percentage) / 100
 
-    # coefficient_from_pupil = (100 - get_role_by_project_and_name(project=project,
-    #                                                              role_name='Ученик').percentage) / 100
+    coefficient_pupil = (100 - get_role_by_project_and_name(project=project,
+                                                            role_name='Ученик').percentage) / 100
 
-    coefficient_from_pupil_master = project.percentMasterByStudent / 100
-    coefficient_from_pupil_mentor = project.percentMentorByStudent / 100
+    percent_from_pupil_master = project.percentMasterByStudent
+    percent_from_pupil_mentor = project.percentMentorByStudent
+
+    coefficient_from_pupil = 1 + (percent_from_pupil_mentor - percent_from_pupil_master) / 100
 
     share_from_assist = coefficient_from_assist * average_rate * project.assists_work_time
 
     share_from_intern = average_rate * project.interns_work_time - interns_amount
 
-    if worker.role.name == 'Мастер':
-        share_from_pupil = coefficient_from_pupil_master * average_rate * project.pupils_work_time
+    if worker.role.name == 'Ментор':
+        share_from_pupil = coefficient_pupil * coefficient_from_pupil * average_rate * project.pupils_work_time
     else:
-        share_from_pupil = coefficient_from_pupil_mentor * average_rate * project.pupils_work_time
+        share_from_pupil = coefficient_pupil * average_rate * project.pupils_work_time
 
     masters_and_mentors_times = project.masters_work_time + project.mentors_work_time
-    masters_and_mentors_times_for_pupil_share = project.masters_work_time + 1.1 * project.mentors_work_time
+    masters_and_mentors_times_for_pupil_share = project.masters_work_time + coefficient_from_pupil * project.mentors_work_time
 
     if masters_and_mentors_times is not None and masters_and_mentors_times != 0:
         part_1 = (share_from_assist + share_from_intern) / masters_and_mentors_times
@@ -49,9 +51,7 @@ def calculate_master_or_mentor_salary(worker: ProjectEmployee):
     else:
         salary = 0
 
-    percent_complete = project.percentComplete
-    coefficient_complete = percent_complete / 100
-    return salary * coefficient_complete
+    return salary
 
 
 def calculate_standard_salary(worker: ProjectEmployee):
@@ -59,13 +59,10 @@ def calculate_standard_salary(worker: ProjectEmployee):
     Подсчёт зп работника
     который не получает доп.плату за других сотрудников проекта
     """
-    project = worker.project
     role_percentage = worker.role.percentage
     worker_time = worker.work_time
     average_rate = worker.project.average_rate
 
     salary = worker_time * average_rate * (role_percentage / 100)
 
-    percent_complete = project.percentComplete
-    coefficient_complete = percent_complete / 100
-    return salary * coefficient_complete
+    return salary

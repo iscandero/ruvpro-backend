@@ -13,7 +13,6 @@ class ModelRoleSerializer(serializers.ModelSerializer):
 
 class WorkerSerializer(serializers.ModelSerializer):
     userId = serializers.PrimaryKeyRelatedField(read_only=True, source='user')
-    # avatar = ImageUrlField(read_only=True, source='user')
     avatar = serializers.SlugRelatedField(slug_field='avatar', source='user', read_only=True)
     roleId = serializers.PrimaryKeyRelatedField(source='role',
                                                 queryset=get_all_project_roles())
@@ -62,6 +61,30 @@ class WorkerSerializer(serializers.ModelSerializer):
         instance.role = validated_data.get('role')
         instance.save(update_fields=['role'])
         return instance
+
+
+class WorkerSerializerForOutput(WorkerSerializer):
+    roleAmount = serializers.SerializerMethodField('get_amount')
+    rate = serializers.SerializerMethodField()
+    salary = serializers.SerializerMethodField()
+
+    def get_amount(self, instance):
+        try:
+            return instance.role.amount * instance.project.percentComplete / 100
+        except:
+            return None
+
+    def get_rate(self, instance):
+        try:
+            return instance.rate * instance.project.percentComplete / 100
+        except:
+            return 0
+
+    def get_salary(self, instance):
+        try:
+            return instance.salary * instance.project.percentComplete / 100
+        except:
+            return 0
 
 
 class WorkerSerializerToCreate(serializers.ModelSerializer):

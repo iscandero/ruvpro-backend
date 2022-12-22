@@ -33,7 +33,8 @@ def calculate_project_and_worker_work_time(sender, created, update_fields, insta
 @receiver(post_save, sender=Project)
 def calculate_project_avg_rate(sender, created, update_fields, instance, **kwargs):
     if (sender == TimeEntry and (created or update_fields == {'work_time'})) or (
-            sender == Project and update_fields == {'budget'}):
+            sender == Project and update_fields in (
+            {'budget'}, {'percentComplete'}, {'percentMasterByStudent'}, {'percentMentorByStudent'})):
         project = instance.employee.project if sender == TimeEntry else instance
         budget_without_additional_income = get_budget_without_additional_income_in_project(project=project)
         project.average_rate = budget_without_additional_income / project.work_time if project.work_time != 0 else 0

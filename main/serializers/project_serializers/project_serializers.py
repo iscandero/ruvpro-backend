@@ -1,22 +1,22 @@
 from rest_framework import serializers
 
 from main.models import Project
-from main.serializers.project_serializers.worker_serializers import WorkerSerializer
-from main.serializers.user_serializers.user_serializers import RoleSerializer
+from main.serializers.project_serializers.worker_serializers import WorkerSerializerForOutput
+from main.serializers.user_serializers.user_serializers import RoleSerializer, RoleSerializerForOutput
 from main.services.history_work_time_project.interactors import write_project_time_entry_to_history_table
 from main.services.history_work_time_project.use_cases import get_difference_project_work_time
 from main.services.role.selectors import get_role_by_id
 
 
 class ProjectSerializerLong(serializers.ModelSerializer):
-    workers = WorkerSerializer(many=True, read_only=True)
-    roles = RoleSerializer(many=True)
+    workers = WorkerSerializerForOutput(many=True, read_only=True)
+    roles = RoleSerializerForOutput(many=True)
     isArchived = serializers.BooleanField(source='is_archived', required=False)
     percentMasterByStudent = serializers.FloatField(required=False)
     percentMentorByStudent = serializers.FloatField(required=False)
     percentComplete = serializers.FloatField(required=False)
     workTime = serializers.SerializerMethodField()
-    averageRate = serializers.FloatField(source='average_rate')
+    averageRate = serializers.SerializerMethodField()
     differenceTimeEntry = serializers.SerializerMethodField()
     isEditable = serializers.SerializerMethodField('get_is_editable')
 
@@ -25,6 +25,12 @@ class ProjectSerializerLong(serializers.ModelSerializer):
         fields = ('id', 'name', 'workers', 'roles', 'budget', 'isArchived', 'workTime', 'averageRate', 'currency',
                   'differenceTimeEntry', 'isEditable', 'percentMasterByStudent', 'percentMentorByStudent',
                   'percentComplete')
+
+    def get_averageRate(self, instance):
+        try:
+            return instance.average_rate * instance.percentComplete / 100
+        except:
+            return 0
 
     def get_differenceTimeEntry(self, instance):
         difference = get_difference_project_work_time(project=instance)

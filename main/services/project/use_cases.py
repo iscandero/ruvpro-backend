@@ -15,7 +15,7 @@ def get_budget_without_additional_income_in_project(project):
 
     percentage_for_deduction = 100 - amortization_inst_role_percentage - journal_role_percentage - resp_role_percentage
 
-    return project.budget * percentage_for_deduction / 100 * project.percentComplete / 100
+    return project.budget * percentage_for_deduction / 100
 
 
 def update_roles_time_in_project_by_worker(worker):

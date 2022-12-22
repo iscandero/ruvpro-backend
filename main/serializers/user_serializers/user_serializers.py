@@ -31,6 +31,17 @@ class RoleSerializer(serializers.Serializer):
         return instance
 
 
+class RoleSerializerForOutput(RoleSerializer):
+    amount = serializers.SerializerMethodField()
+
+    def get_amount(self, instance):
+        try:
+            return instance.amount * instance.project.percentComplete / 100
+        except:
+            return None
+
+
+
 class SocialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialNetworks
