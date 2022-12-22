@@ -7,7 +7,8 @@ from main.const_data.template_errors import *
 
 from main.parsers import *
 from main.serializers.project_serializers.create_serializers import ProjectSerializerForCreate
-from main.serializers.project_serializers.project_serializers import ProjectSetCompleteSerializer, ProjectSerializerLong
+from main.serializers.project_serializers.project_serializers import ProjectSetCompleteSerializer, \
+    ProjectSerializerLong, ProjectSerializerLongOutput
 from main.services.project.selectors import get_projects_for_owner_or_member, get_all_project
 from main.services.user.selectors import get_app_user_by_token
 

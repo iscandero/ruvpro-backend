@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from main.authentication import AppUserAuthentication
 from main.const_data.template_errors import *
 from main.pagination import ProjectPagination
-from main.serializers.project_serializers.project_serializers import ProjectSerializerLong, ProjectSerializerShort
+from main.serializers.project_serializers.project_serializers import ProjectSerializerLong, ProjectSerializerShort, \
+    ProjectSerializerLongOutput
 from main.services.project.selectors import get_projects_for_owner_or_member
 
 
@@ -49,7 +50,7 @@ class ProjectView(RetrieveUpdateAPIView):
         if user:
             self.queryset = get_projects_for_owner_or_member(viewer_user=user)
             instance = self.get_object()
-            serializer = self.get_serializer(instance, context={'user_id': user.id})
+            serializer = ProjectSerializerLongOutput(instance, context={'user_id': user.id})
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
@@ -68,6 +69,7 @@ class ProjectView(RetrieveUpdateAPIView):
             if getattr(instance, '_prefetched_objects_cache', None):
                 instance._prefetched_objects_cache = {}
 
-            return Response(serializer.data)
+            serializer_for_output = ProjectSerializerLongOutput(instance, context={'user_id': user.id})
+            return Response(serializer_for_output.data)
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)

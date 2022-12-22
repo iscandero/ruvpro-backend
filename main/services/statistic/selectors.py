@@ -1,5 +1,5 @@
 from main.services.currency.use_cases import convert_currency
-from main.models import TimeEntry, AppUser, HistoryRate, ProjectEmployee
+from main.models import TimeEntry, AppUser, ProjectEmployee
 from main.services.worker.selectors import get_worker_ids_by_user
 
 

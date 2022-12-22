@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from main.models import Project
-from main.serializers.project_serializers.worker_serializers import WorkerSerializerForOutput
+from main.serializers.project_serializers.worker_serializers import WorkerSerializerForOutput, WorkerSerializer
 from main.serializers.user_serializers.user_serializers import RoleSerializer, RoleSerializerForOutput
 from main.services.history_work_time_project.interactors import write_project_time_entry_to_history_table
 from main.services.history_work_time_project.use_cases import get_difference_project_work_time
@@ -9,8 +9,8 @@ from main.services.role.selectors import get_role_by_id
 
 
 class ProjectSerializerLong(serializers.ModelSerializer):
-    workers = WorkerSerializerForOutput(many=True, read_only=True)
-    roles = RoleSerializerForOutput(many=True)
+    workers = WorkerSerializer(many=True, read_only=True)
+    roles = RoleSerializer(many=True)
     isArchived = serializers.BooleanField(source='is_archived', required=False)
     percentMasterByStudent = serializers.FloatField(required=False)
     percentMentorByStudent = serializers.FloatField(required=False)
@@ -88,6 +88,11 @@ class ProjectSerializerLong(serializers.ModelSerializer):
 
     def get_workTime(self, instance):
         return instance.work_time * 3600
+
+
+class ProjectSerializerLongOutput(ProjectSerializerLong):
+    workers = WorkerSerializerForOutput(many=True, read_only=True)
+    roles = RoleSerializerForOutput(many=True, read_only=True)
 
 
 class ProjectSerializerShort(serializers.ModelSerializer):

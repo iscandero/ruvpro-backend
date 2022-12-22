@@ -33,6 +33,7 @@ class RoleSerializer(serializers.Serializer):
 
 class RoleSerializerForOutput(RoleSerializer):
     amount = serializers.SerializerMethodField()
+    percentage = serializers.SerializerMethodField()
 
     def get_amount(self, instance):
         try:
@@ -40,6 +41,9 @@ class RoleSerializerForOutput(RoleSerializer):
         except:
             return None
 
+    def get_percentage(self, instance):
+        percentage = instance.percentage
+        return int(percentage) if percentage is not None else None
 
 
 class SocialSerializer(serializers.ModelSerializer):

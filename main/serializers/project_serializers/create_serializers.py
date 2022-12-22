@@ -16,17 +16,6 @@ class RoleSerializerForCreateProject(serializers.ModelSerializer):
         return Role.objects.create(**validated_data)
 
 
-class RoleSerializerForOutput(serializers.ModelSerializer):
-    amount = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Role
-        fields = ('name', 'description', 'color', 'percentage', 'amount', 'type')
-
-    def get_amount(self, instance):
-        return instance.amount * instance.project.percentComplete / 100
-
-
 class WorkerSerializerForCreateProject(serializers.ModelSerializer):
     userId = serializers.PrimaryKeyRelatedField(queryset=get_all_users(), source='user', required=False)
     roleName = serializers.CharField()
@@ -44,7 +33,7 @@ class WorkerSerializerForCreateProject(serializers.ModelSerializer):
 
 
 class ProjectSerializerForCreate(serializers.ModelSerializer):
-    roles = RoleSerializerForOutput(many=True)
+    roles = RoleSerializerForCreateProject(many=True)
     workers = WorkerSerializerForCreateProject(many=True, required=False)
 
     class Meta:

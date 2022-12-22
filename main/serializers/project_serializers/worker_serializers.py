@@ -65,8 +65,13 @@ class WorkerSerializer(serializers.ModelSerializer):
 
 class WorkerSerializerForOutput(WorkerSerializer):
     roleAmount = serializers.SerializerMethodField('get_amount')
+    rolePercentage = serializers.SerializerMethodField('get_percentage')
     rate = serializers.SerializerMethodField()
     salary = serializers.SerializerMethodField()
+
+    def get_percentage(self, instance):
+        percentage = instance.role.percentage
+        return int(percentage) if percentage is not None else None
 
     def get_amount(self, instance):
         try:

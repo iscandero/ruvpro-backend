@@ -51,12 +51,12 @@ def calculate_project_time_data_from_delete_worker(sender, instance, **kwargs):
     project.save(update_fields=['average_rate'])
 
 
-@receiver(post_save, sender=TimeEntry)
-def calculate_worker_rate(sender, instance, **kwargs):
-    project = instance.employee.project
-    workers = get_workers_by_project(project=project)
-    for worker in workers:
-        rate = get_rate_by_worker(worker=worker)
-        worker.rate = rate
-        worker.save(update_fields=['rate'])
-        HistoryRate.objects.create(employee=worker, rate=rate, date_change=instance.date)
+# @receiver(post_save, sender=TimeEntry)
+# def calculate_worker_rate(sender, instance, **kwargs):
+#     project = instance.employee.project
+#     workers = get_workers_by_project(project=project)
+#     for worker in workers:
+#         rate = get_rate_by_worker(worker=worker)
+#         worker.rate = rate
+#         worker.save(update_fields=['rate'])
+#         HistoryRate.objects.create(employee=worker, rate=rate, date_change=instance.date)
