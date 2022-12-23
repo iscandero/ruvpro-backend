@@ -43,6 +43,9 @@ class RoleSerializerForOutput(RoleSerializer):
 
     def get_percentage(self, instance):
         percentage = instance.percentage
+        if instance.type != 1:
+            return percentage
+
         return percentage * instance.project.percentComplete / 100 if percentage is not None else None
 
 
