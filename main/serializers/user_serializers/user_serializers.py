@@ -43,7 +43,7 @@ class RoleSerializerForOutput(RoleSerializer):
 
     def get_percentage(self, instance):
         percentage = instance.percentage
-        return int(percentage) if percentage is not None else None
+        return percentage * instance.project.percentComplete / 100 if percentage is not None else None
 
 
 class SocialSerializer(serializers.ModelSerializer):
@@ -91,6 +91,9 @@ class UserSerializerForUpdate(serializers.Serializer):
 
     def update(self, instance, validated_data):
         update_fields = []
+        if validated_data.get('phone') is not None:
+            instance.phone = validated_data.get('phone', instance.phone)
+            update_fields.append('phone')
         if validated_data.get('email') is not None:
             instance.email = validated_data.get('email', instance.email)
             update_fields.append('email')
