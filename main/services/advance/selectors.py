@@ -1,6 +1,6 @@
 from main.models import ProjectEmployee, HistoryAdvance
 from main.services.project.selectors import get_project_by_id
-from main.services.worker.selectors import get_worker_by_id, get_workers_by_project
+from main.services.worker.selectors import get_worker_by_id, get_workers_by_project, get_worker_by_user_and_project_id
 
 
 def get_advances_by_worker(employee: ProjectEmployee):
@@ -28,3 +28,8 @@ def get_advance_by_date_and_project_id(project_id: int, date):
         advances.append(get_advance_by_date_and_worker_id(worker_id=worker_id, date=date))
 
     return advances
+
+
+def get_advances_by_user_and_project_id(user, project_id):
+    worker = get_worker_by_user_and_project_id(user, project_id)
+    return HistoryAdvance.objects.filter(employee=worker).exclude(advance=0)

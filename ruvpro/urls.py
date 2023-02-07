@@ -11,6 +11,7 @@ urlpatterns = [
                   path('', include('main.urls.authorization_api_urls')),
                   path('', include('main.urls.team_api_urls')),
                   path('', include('main.urls.statistics_api_urls')),
+                  path('', include('main.urls.history_api_urls')),
                   path('', include('main.urls.codes_api_urls')),
                   path('', include('main.urls.data_links_urls')),
                   path('', include('main.urls.basic_urls')),
