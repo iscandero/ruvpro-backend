@@ -41,11 +41,13 @@ class TimeEntrySerializerForHistory(serializers.Serializer):
             'currency',)
 
     def get_advance(self, instance):
-        advance = get_advance_by_date_and_worker(instance.employee, instance.date).advance
-        if advance == 0:
-            advance = None
+        advance_item = get_advance_by_date_and_worker(instance.employee, instance.date)
+        if advance_item:
+            advance = advance_item.advance
+            if advance != 0:
+                return advance
 
-        return advance
+        return None
 
     def get_project_id(self, instance):
         return instance.employee.project.id
