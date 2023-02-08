@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from main.models import ProjectEmployee
+from main.models import ProjectEmployee, TimeEntry
 from main.serializers.fields import TimestampField
 from main.serializers.project_serializers.worker_serializers import ModelRoleSerializer
 from main.services.advance.selectors import get_advance_by_date_and_worker
@@ -23,9 +23,9 @@ class WorkerSerializerForHistory(serializers.ModelSerializer):
         return get_count_workdays_by_worker(worker=instance)
 
 
-class TimeEntrySerializerForHistory(serializers.Serializer):
+class AdvanceTimeEntrySerializerForHistory(serializers.Serializer):
     projectId = serializers.SerializerMethodField('get_project_id')
-    workTime = serializers.FloatField(source='work_time', read_only=True)
+    workTime = serializers.SerializerMethodField('get_work_time')
     date = TimestampField()
     advance = serializers.SerializerMethodField()
     salary = serializers.SerializerMethodField()
@@ -41,50 +41,33 @@ class TimeEntrySerializerForHistory(serializers.Serializer):
             'currency',)
 
     def get_advance(self, instance):
-        advance_item = get_advance_by_date_and_worker(instance.employee, instance.date)
-        if advance_item:
-            advance = advance_item.advance
-            if advance != 0:
-                return advance
+        if isinstance(instance, TimeEntry):
+            advance_item = get_advance_by_date_and_worker(instance.employee, instance.date)
+            if advance_item:
+                advance = advance_item.advance
+                if advance != 0:
+                    return advance
 
-        return None
+            return None
+        else:
+            return instance.advance
 
     def get_project_id(self, instance):
         return instance.employee.project.id
 
     def get_salary(self, instance):
-        percent_complete = instance.employee.project.percentComplete
-        return instance.employee.rate * instance.work_time * percent_complete / 100
+        if isinstance(instance, TimeEntry):
+            percent_complete = instance.employee.project.percentComplete
+            return instance.employee.rate * instance.work_time * percent_complete / 100
+        else:
+            return None
 
     def get_currency(self, instance):
         return instance.employee.project.currency
-
-
-class AdvanceSerializerForHistory(serializers.Serializer):
-    projectId = serializers.SerializerMethodField('get_project_id')
-    advance = serializers.FloatField(read_only=True)
-    date = TimestampField()
-    workTime = serializers.SerializerMethodField('get_work_time')
-    salary = serializers.SerializerMethodField()
-    currency = serializers.SerializerMethodField()
-
-    class Meta:
-        fields = (
-            'projectId',
-            'workTime',
-            'advance',
-            'date',
-            'salary',
-            'currency',)
 
     def get_work_time(self, instance):
-        return None
+        if isinstance(instance, TimeEntry):
+            return instance.work_time
+        else:
+            return None
 
-    def get_salary(self, instance):
-        return None
-
-    def get_project_id(self, instance):
-        return instance.employee.project.id
-
-    def get_currency(self, instance):
-        return instance.employee.project.currency
