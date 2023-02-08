@@ -9,6 +9,7 @@ from main.serializers.statistics_serializers.projects_serializers import Project
 from main.services.advance.selectors import get_advances_by_user_and_project_id
 from main.services.time_entry.selectors import get_time_entrys_by_user_and_project_id
 from main.services.worker.selectors import get_workers_by_user
+from itertools import chain
 
 
 class ProjectHistoryListAPIView(ListAPIView):
@@ -51,12 +52,9 @@ class AdvanceWorkTimeHistoryListAPIView(ListAPIView):
             if paginate is not None:
                 self.pagination_class = HistoryPagination
 
-            page = self.paginate_queryset(queryset)
-            if page is None:
-                page = self.paginate_queryset(advances)
-
+            page = self.paginate_queryset(list(chain(queryset, advances)))
             if page is not None:
-                serializer = self.get_serializer(queryset, many=True)
+                serializer = self.get_serializer(page, many=True)
                 data = serializer.data + AdvanceSerializerForHistory(advances, many=True).data
                 return self.get_paginated_response(data)
 
