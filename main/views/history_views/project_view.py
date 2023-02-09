@@ -31,7 +31,7 @@ class ProjectHistoryListAPIView(ListAPIView):
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class AdvanceWorkTimeHistoryListAPIView(ListAPIView):
+class AdvanceWorkTimeProjectHistoryListAPIView(ListAPIView):
     authentication_classes = [AppUserAuthentication]
     serializer_class = AdvanceTimeEntrySerializerForHistory
 
