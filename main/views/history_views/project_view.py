@@ -23,13 +23,10 @@ class ProjectHistoryListAPIView(ListAPIView):
         if user:
             queryset = get_workers_by_user(user=user)
 
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-
             serializer = self.get_serializer(queryset, many=True)
-            return Response({'projectsHistory': serializer.data})
+            data_to_output = serializer.data
+
+            return Response({'projectsHistory': data_to_output})
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -53,7 +50,7 @@ class AdvanceWorkTimeHistoryListAPIView(ListAPIView):
                 self.pagination_class = HistoryPagination
 
             no_sorted_queryset = list(chain(time_entrys, advances))
-            queryset = sorted(no_sorted_queryset, key=operator.attrgetter('date'))
+            queryset = sorted(no_sorted_queryset, key=operator.attrgetter('date'), reverse=True)
             page = self.paginate_queryset(queryset)
 
             if page is not None:
