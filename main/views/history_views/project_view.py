@@ -21,7 +21,8 @@ class ProjectHistoryListAPIView(ListAPIView):
     def list(self, request, *args, **kwargs):
         user = request.user
         if user:
-            queryset = get_workers_by_user(user=user)
+            workers = get_workers_by_user(user=user)
+            queryset = sorted(workers, key=operator.attrgetter('id'), reverse=True)
 
             serializer = self.get_serializer(queryset, many=True)
             data_to_output = serializer.data
