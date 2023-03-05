@@ -3,3 +3,4 @@ Pillow
 requests~=2.26.0
 djangorestframework~=3.13.1
 drf_yasg
+FPDF

@@ -15,6 +15,7 @@ urlpatterns = [
                   path('', include('main.urls.codes_api_urls')),
                   path('', include('main.urls.data_links_urls')),
                   path('', include('main.urls.basic_urls')),
+                  path('', include('main.urls.report_urls')),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += doc_urls

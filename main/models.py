@@ -323,3 +323,18 @@ class Link(models.Model):
 
     def __str__(self):
         return f"Ссылка на {self.name}"
+
+
+class Report(models.Model):
+    class Meta:
+        verbose_name = 'Отчёт'
+        verbose_name_plural = 'Отчёты'
+
+    id = models.AutoField(verbose_name="ID", primary_key=True, unique=True)
+    user = models.ForeignKey(to=AppUser, verbose_name="Пользователь", on_delete=models.CASCADE)
+    date = models.DateField(verbose_name="Дата", unique=False, null=False,
+                            blank=False)
+    url = models.URLField(verbose_name="Путь к файлу отчёта", null=True, blank=True)
+
+    def __str__(self):
+        return f"Отчёт {self.id} + {self.user}"

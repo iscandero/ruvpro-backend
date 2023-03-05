@@ -36,4 +36,6 @@ admin.site.register(HistoryRate)
 
 admin.site.register(CurrencyCourse)
 
+admin.site.register(Report)
+
 

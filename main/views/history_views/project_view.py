@@ -26,7 +26,6 @@ class ProjectHistoryListAPIView(ListAPIView):
 
             serializer = self.get_serializer(queryset, many=True)
             data_to_output = serializer.data
-
             return Response({'projectsHistory': data_to_output})
 
         return Response(USER_NOT_FOUND_DATA, status=status.HTTP_401_UNAUTHORIZED)
