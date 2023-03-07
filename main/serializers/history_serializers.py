@@ -24,6 +24,7 @@ class WorkerSerializerForHistory(serializers.ModelSerializer):
 
 
 class AdvanceTimeEntrySerializerForHistory(serializers.Serializer):
+    name = serializers.SerializerMethodField('get_name')
     projectId = serializers.SerializerMethodField('get_project_id')
     workTime = serializers.SerializerMethodField('get_work_time')
     date = TimestampField()
@@ -38,7 +39,8 @@ class AdvanceTimeEntrySerializerForHistory(serializers.Serializer):
             'advance',
             'date',
             'salary',
-            'currency',)
+            'currency',
+            'name',)
 
     def get_advance(self, instance):
         if isinstance(instance, TimeEntry):
@@ -71,3 +73,5 @@ class AdvanceTimeEntrySerializerForHistory(serializers.Serializer):
         else:
             return None
 
+    def get_name(self, instance):
+        return instance.employee.user.name

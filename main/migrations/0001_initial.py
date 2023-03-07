@@ -220,7 +220,7 @@ class Migration(migrations.Migration):
             name='FileUser',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file', models.FileField(upload_to='users_files', verbose_name='Файл')),
+                ('file', models.FileField(upload_to='users_reports', verbose_name='Файл')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.appuser', verbose_name='Пользователь')),
             ],
             options={

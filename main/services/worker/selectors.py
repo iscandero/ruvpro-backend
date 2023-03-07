@@ -1,6 +1,6 @@
 from main.models import ProjectEmployee, AppUser, Role, Project
 from main.services.project.selectors import get_all_project_ids_list_by_owner_projects, \
-    get_projects_ids_by_owner_or_member
+    get_projects_ids_by_owner_or_member, get_all_projects_by_owner
 
 
 def get_worker_by_user_role_project(user: AppUser, role: Role, project: Project):
@@ -66,3 +66,7 @@ def get_workers_by_user(user: AppUser):
 
 def get_worker_by_user_and_project_id(user: AppUser, project_id: int):
     return ProjectEmployee.objects.get(user=user, project_id=project_id)
+
+
+def get_all_workers_by_project_id(project_id):
+    return ProjectEmployee.objects.filter(project_id=project_id)

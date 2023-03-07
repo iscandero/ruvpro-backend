@@ -1,6 +1,7 @@
 from main.models import TimeEntry, ProjectEmployee
 from main.services.project.selectors import get_project_by_id
-from main.services.worker.selectors import get_worker_by_id, get_workers_by_project, get_worker_by_user_and_project_id
+from main.services.worker.selectors import get_worker_by_id, get_workers_by_project, get_worker_by_user_and_project_id, \
+    get_workers_by_user
 
 
 def get_time_entry_employees_by_ids_list(employees: list):
@@ -41,3 +42,12 @@ def get_not_zero_time_entry_by_worker(worker: ProjectEmployee):
 def get_time_entrys_by_user_and_project_id(user, project_id):
     worker = get_worker_by_user_and_project_id(user, project_id)
     return TimeEntry.objects.filter(employee=worker).exclude(work_time=0)
+
+
+def get_time_entrys_by_user(user):
+    workers = get_workers_by_user(user=user)
+    return TimeEntry.objects.filter(employee__in=workers).exclude(work_time=0)
+
+
+def get_time_entrys_by_workers(workers):
+    return TimeEntry.objects.filter(employee__in=workers)

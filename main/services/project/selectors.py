@@ -39,3 +39,7 @@ def get_all_project_ids_list_by_owner_projects(owner_projects: AppUser) -> list:
 
 def get_all_project():
     return Project.objects.all()
+
+
+def get_all_projects_by_owner(owner):
+    return Project.objects.filter(owner=owner)
