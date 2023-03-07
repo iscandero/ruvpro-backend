@@ -64,8 +64,6 @@ def create_current_project_report_for_all_workers(user, project_id, from_date=No
     project_id - int, id проекта, по которому создаётся отчёт
     from_date, to_date - необходимый интервал дат
 
-    Если передан id проекта, создаёт отчёт для заданного пользователя на заданном проекте
-    Если id проекта не указан, создаёт отчёт для заданного пользователя на всех проектах, где он работает
     """
 
     workers = get_all_workers_by_project_id(project_id)
