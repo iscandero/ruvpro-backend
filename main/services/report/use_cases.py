@@ -64,9 +64,11 @@ def create_user_current_project_report(user, project_id=None, from_date=None, to
 
         data = sorted(data, key=itemgetter(5))
 
-    create_pdf_report(titles_list=titles_list, data_list=data, report_name=report_name)
+    file_name = report_name.replace(' ', '_')
+    create_pdf_report(titles_list=titles_list, data_list=data, report_name=file_name)
     return create_report_object(user=user, date=datetime.now().date(),
-                                url=SERV_NAME + '/media' + '/users_reports' + '/' + report_name + '.pdf')
+                                url=SERV_NAME + '/media' + '/users_reports' + '/' + file_name + '.pdf',
+                                name=file_name)
 
 
 def create_current_project_report_for_all_workers(user, project_id, from_date=None, to_date=None):
@@ -107,6 +109,8 @@ def create_current_project_report_for_all_workers(user, project_id, from_date=No
 
     data = sorted(data, key=itemgetter(5))
 
-    create_pdf_report(titles_list=titles_list, data_list=data, report_name=report_name)
+    file_name = report_name.replace(' ', '_')
+    create_pdf_report(titles_list=titles_list, data_list=data, report_name=file_name)
     return create_report_object(user=user, date=datetime.now().date(),
-                                url=SERV_NAME + '/media' + '/users_reports' + '/' + report_name + '.pdf')
+                                url=SERV_NAME + '/media' + '/users_reports' + '/' + file_name + '.pdf',
+                                name=file_name)

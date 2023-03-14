@@ -5,8 +5,8 @@ from main.models import Report
 from ruvpro.settings import STATIC_ROOT, MEDIA_ROOT
 
 
-def create_report_object(user, date, url):
-    return Report.objects.create(user=user, date=date, url=url)
+def create_report_object(user, date, url, name):
+    return Report.objects.create(user=user, date=date, url=url, name=name)
 
 
 def create_pdf_report(titles_list: list, data_list: list, report_name: str):

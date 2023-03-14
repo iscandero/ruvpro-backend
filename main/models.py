@@ -335,6 +335,7 @@ class Report(models.Model):
     date = models.DateField(verbose_name="Дата", unique=False, null=False,
                             blank=False)
     url = models.URLField(verbose_name="Путь к файлу отчёта", null=True, blank=True)
+    name = models.CharField(verbose_name="Название файла", null=True, unique=False, blank=True, max_length=255)
 
     def __str__(self):
         return f"Отчёт {self.id} + {self.user}"
