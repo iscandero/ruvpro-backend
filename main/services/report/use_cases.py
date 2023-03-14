@@ -1,3 +1,5 @@
+import random
+import string
 from datetime import datetime
 from operator import itemgetter
 
@@ -28,16 +30,16 @@ def create_user_current_project_report(user, project_id=None, from_date=None, to
 
     flag_interval = False
     if from_date and to_date:
-        from_date = convert_timestamp_to_date(float(from_date))
-        to_date = convert_timestamp_to_date(float(to_date))
+        from_date = convert_timestamp_to_date(float(from_date)).strftime('%d.%m.%Y')
+        to_date = convert_timestamp_to_date(float(to_date)).strftime('%d.%m.%Y')
         flag_interval = True
 
     data = []
     if project_id:
         if flag_interval:
-            report_name = f'{get_project_by_id(project_id).name} {user.name} {from_date} - {to_date}'
+            report_name = f'{get_project_by_id(project_id).name.replace(" ", "_")} {user.name} с {from_date} по {to_date}'
         else:
-            report_name = f'{get_project_by_id(project_id).name} {user.name} {datetime.now().date()}'
+            report_name = f'{get_project_by_id(project_id).name.replace(" ", "_")} {user.name} {datetime.now().date()}'
 
         titles_list = ['Дата', 'Рабочие часы', 'Аванс', 'Заработная плата', 'Валюта']
 
@@ -49,7 +51,7 @@ def create_user_current_project_report(user, project_id=None, from_date=None, to
             data.append([date, str(work_time), str(advance), str(salary), str(row['currency'])])
     else:
         if flag_interval:
-            report_name = f'{user.name} {from_date} - {to_date}'
+            report_name = f'{user.name} с {from_date} по {to_date}'
         else:
             report_name = f'{user.name} {datetime.now().date()}'
 
@@ -64,11 +66,11 @@ def create_user_current_project_report(user, project_id=None, from_date=None, to
 
         data = sorted(data, key=itemgetter(5))
 
-    file_name = report_name.replace(' ', '_')
+    file_name = ''.join(random.choice(string.ascii_lowercase) for i in range(24))
     create_pdf_report(titles_list=titles_list, data_list=data, report_name=file_name)
     return create_report_object(user=user, date=datetime.now().date(),
                                 url=SERV_NAME + '/media' + '/users_reports' + '/' + file_name + '.pdf',
-                                name=file_name)
+                                name=report_name)
 
 
 def create_current_project_report_for_all_workers(user, project_id, from_date=None, to_date=None):
@@ -86,14 +88,14 @@ def create_current_project_report_for_all_workers(user, project_id, from_date=No
 
     flag_interval = False
     if from_date and to_date:
-        from_date = convert_timestamp_to_date(float(from_date))
-        to_date = convert_timestamp_to_date(float(to_date))
+        from_date = convert_timestamp_to_date(float(from_date)).strftime('%d.%m.%Y')
+        to_date = convert_timestamp_to_date(float(to_date)).strftime('%d.%m.%Y')
         flag_interval = True
 
     if flag_interval:
-        report_name = f'{get_project_by_id(project_id).name} {from_date} - {to_date}'
+        report_name = f'{get_project_by_id(project_id).name.replace(" ", "_")} с {from_date} по {to_date}'
     else:
-        report_name = f'{get_project_by_id(project_id).name} {datetime.now().date()}'
+        report_name = f'{get_project_by_id(project_id).name.replace(" ", "_")} {datetime.now().date()}'
 
     titles_list = ['Дата', 'Рабочие часы', 'Аванс', 'Заработная плата', 'Валюта', 'Имя']
 
@@ -109,8 +111,8 @@ def create_current_project_report_for_all_workers(user, project_id, from_date=No
 
     data = sorted(data, key=itemgetter(5))
 
-    file_name = report_name.replace(' ', '_')
+    file_name = ''.join(random.choice(string.ascii_lowercase) for i in range(24))
     create_pdf_report(titles_list=titles_list, data_list=data, report_name=file_name)
     return create_report_object(user=user, date=datetime.now().date(),
                                 url=SERV_NAME + '/media' + '/users_reports' + '/' + file_name + '.pdf',
-                                name=file_name)
+                                name=report_name)
